@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentra Hub – Peta & Dashboard Sentra</title>
+<meta name="description" content="Peta sebaran sentra dan dashboard kelolaan seluruh Indonesia.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2316277a'/%3E%3Cstop offset='1' stop-color='%232748d8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-size='34' font-weight='800' text-anchor='middle' fill='%23ffe3a1' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-in">
+    <a class="brand" href="index.html#top">
+      <div class="brand-mark"><svg class="ic"><use href="#i-bank"/></svg></div>
+      <div class="t"><span class="t">SENTRA HUB</span><small>Cash Operations</small></div>
+    </a>
+    <div class="nav-links">
+      <a href="#peta" class="active" data-spy><svg class="ic"><use href="#i-map"/></svg><span class="lbl">Peta Sentra</span></a>
+      <a href="#dashboard" data-spy><svg class="ic"><use href="#i-chart"/></svg><span class="lbl">Dashboard</span></a>
+      <a href="form.html" class="cta"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Input Data</span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- ================= HERO ================= -->
+<div class="container" id="top" style="padding-top:26px">
+  <section class="hero">
+    <div class="hero-copy">
+      <span class="pill-light"><svg class="ic"><use href="#i-sparkle"/></svg> CASH OPERATIONS INTELLIGENCE</span>
+      <h1>Seluruh sentra Indonesia,<br><span class="hl">dalam satu layar.</span></h1>
+      <p class="lead">Pantau kelolaan, user/bank, personil, dan infrastruktur setiap COU secara real-time, langsung dari Google Sheets Anda. Klik kota di peta untuk melihat detailnya.</p>
+      <div class="hero-actions">
+        <a class="btn btn-gold" href="#peta">Jelajahi Peta <svg class="ic"><use href="#i-arrow"/></svg></a>
+        <a class="btn btn-ghost-w" href="#dashboard"><svg class="ic"><use href="#i-chart"/></svg> Lihat Dashboard</a>
+      </div>
+      <ul class="trust">
+        <li><svg class="ic"><use href="#i-shield"/></svg> Terhubung Google Sheets</li>
+        <li><svg class="ic"><use href="#i-clock"/></svg> Data selalu terbaru</li>
+        <li><svg class="ic"><use href="#i-layers"/></svg> 10 region · 2 divisi</li>
+      </ul>
+    </div>
+    <div class="art-wrap" id="heroArt">
+      <div class="float-chip fc1"><span class="fi"><svg class="ic"><use href="#i-building"/></svg></span><div><b id="hSentra">–</b>Sentra / COU aktif</div></div>
+      <div class="float-chip fc2"><span class="fi"><svg class="ic"><use href="#i-bank"/></svg></span><div><b id="hBank">–</b>Bank terlayani</div></div>
+      <div class="float-chip fc3"><span class="fi"><svg class="ic"><use href="#i-cash"/></svg></span><div><b id="hKel">–</b>Total kelolaan</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- ================= SECTION 1 : PETA ================= -->
+<section class="block" id="peta" style="padding-top:72px">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div>
+        <span class="eyebrow"><svg class="ic"><use href="#i-pin"/></svg> Peta Sebaran Sentra</span>
+        <h2 class="title">Temukan sentra di setiap kota besar</h2>
+        <p class="lead-dark">Klik titik emas untuk melihat total user/bank, kelolaan, pegawai, rasio kelolaan per pegawai, serta mesin hitung, mesin sortir, dan mobil.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="chip" id="status"><span class="dot demo"></span> Memuat…</span>
+        <button class="btn btn-sm" id="refresh" type="button"><svg class="ic"><use href="#i-refresh"/></svg> Muat ulang</button>
+      </div>
+    </div>
+
+    <div class="map-shell reveal">
+      <div id="map" role="application" aria-label="Peta sentra Indonesia"></div>
+      <aside class="card panel" id="panel" aria-live="polite"></aside>
+    </div>
+    <p class="note" id="unplaced"></p>
+  </div>
+</section>
+
+<!-- ================= SECTION 2 : DASHBOARD ================= -->
+<section class="block" id="dashboard">
+  <div class="container">
+    <div class="sec-head reveal">
+      <div>
+        <span class="eyebrow"><svg class="ic"><use href="#i-chart"/></svg> Dashboard Nasional</span>
+        <h2 class="title">Ringkasan seluruh kota di Indonesia</h2>
+        <p class="lead-dark">Angka dan grafik di bawah ini dihitung otomatis dari seluruh sentra yang sudah diinput lewat halaman form.</p>
+      </div>
+    </div>
+
+    <div class="grid g4 reveal" id="kpis">
+      <div class="card kpi dark big">
+        <div class="kpi-top"><div class="k-label">Total Kelolaan Seluruh Indonesia</div><span class="ico"><svg class="ic"><use href="#i-cash"/></svg></span></div>
+        <div class="k-value" id="kKel">–</div>
+        <div class="k-sub" id="kKelSub"></div>
+      </div>
+      <div class="card kpi blue big">
+        <div class="kpi-top"><div class="k-label">Total User / Bank Seluruh Indonesia</div><span class="ico"><svg class="ic"><use href="#i-bank"/></svg></span></div>
+        <div class="k-value" id="kBank">–</div>
+        <div class="k-sub" id="kBankSub"></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-top"><div class="k-label">Jumlah Sentra / COU</div><span class="ico teal"><svg class="ic"><use href="#i-building"/></svg></span></div>
+        <div class="k-value" id="kSentra">–</div>
+        <div class="k-sub" id="kSentraSub"></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-top"><div class="k-label">Total Pegawai</div><span class="ico violet"><svg class="ic"><use href="#i-users"/></svg></span></div>
+        <div class="k-value" id="kPeg">–</div>
+        <div class="k-sub" id="kPegSub"></div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-top"><div class="k-label">Mesin Hitung</div><span class="ico gold"><svg class="ic"><use href="#i-calc"/></svg></span></div>
+        <div class="k-value" id="kMh">–</div>
+        <div class="k-sub">unit di seluruh sentra</div>
+      </div>
+      <div class="card kpi">
+        <div class="kpi-top"><div class="k-label">Mesin Sortir</div><span class="ico teal"><svg class="ic"><use href="#i-layers"/></svg></span></div>
+        <div class="k-value" id="kMs">–</div>
+        <div class="k-sub">unit di seluruh sentra</div>
+      </div>
+      <div class="card kpi" style="grid-column:span 2">
+        <div class="kpi-top"><div class="k-label">Mobil CR FLM</div><span class="ico blue"><svg class="ic"><use href="#i-truck"/></svg></span></div>
+        <div class="k-value" id="kMb">–</div>
+        <div class="k-sub">armada di seluruh sentra</div>
+      </div>
+    </div>
+
+    <div class="insights reveal" id="insights"></div>
+
+    <div class="grid g2" style="margin-top:20px">
+      <div class="card chart-card reveal">
+        <div class="chart-head"><span class="ico blue"><svg class="ic"><use href="#i-layers"/></svg></span><div><h3>Kelolaan per Divisi</h3><p>Perbandingan total kelolaan Opr 1 dan Opr 2</p></div></div>
+        <div class="chart-box"><canvas id="cDivisi"></canvas></div>
+      </div>
+      <div class="card chart-card reveal">
+        <div class="chart-head"><span class="ico gold"><svg class="ic"><use href="#i-map"/></svg></span><div><h3>Kelolaan per Region</h3><p>Total kelolaan Region 1 sampai 10</p></div></div>
+        <div class="chart-box"><canvas id="cRegion"></canvas></div>
+      </div>
+    </div>
+    <div class="card chart-card reveal" style="margin-top:20px">
+      <div class="chart-head"><span class="ico teal"><svg class="ic"><use href="#i-building"/></svg></span><div><h3>Kelolaan per COU</h3><p>Diurutkan dari kelolaan terbesar</p></div></div>
+      <div class="chart-box" id="couBox"><canvas id="cCou"></canvas></div>
+    </div>
+    <p class="note">Keterangan: M = Miliar · T = Triliun · Jt = Juta (Rupiah)</p>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="foot-top">
+      <div>
+        <div class="brand"><div class="brand-mark"><svg class="ic"><use href="#i-bank"/></svg></div><div><span>SENTRA HUB</span><small>Cash Operations</small></div></div>
+        <p>Dashboard terpadu untuk memantau kelolaan, personil, dan infrastruktur seluruh sentra.</p>
+      </div>
+      <div class="foot-links">
+        <a href="#peta"><svg class="ic"><use href="#i-map"/></svg> Peta Sentra</a>
+        <a href="#dashboard"><svg class="ic"><use href="#i-chart"/></svg> Dashboard</a>
+        <a href="form.html"><svg class="ic"><use href="#i-plus"/></svg> Input Data</a>
+      </div>
+    </div>
+    <div class="foot-bot"><span>© <span id="yr"></span> Sentra Hub</span><span>Data bersumber dari Google Sheets via Apps Script</span></div>
+  </div>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="api.js"></script>
+<script>
+(function () {
+  "use strict";
+  const A = window.SentraAPI;
+  const { fmtRp, fmtNum, esc, icon, CITIES } = A;
+  const $ = (s) => document.querySelector(s);
+  let agg = null, charts = {}, pins = {}, markers = [], activeCity = null;
+  $("#yr").textContent = new Date().getFullYear();
+  $("#heroArt").insertAdjacentHTML("afterbegin", A.heroArt());
+
+  /* ---------- MAP (basemap terang, gratis tanpa API key) ---------- */
+  const map = L.map("map", { scrollWheelZoom: false, minZoom: 4, maxZoom: 10, zoomSnap: 0.25 });
+  const esriAttr = "Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors";
+  const base = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}", { attribution: esriAttr, maxZoom: 16 }).addTo(map);
+  const ref = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}", { maxZoom: 16 }).addTo(map);
+  let tileErrors = 0, usedFallback = false;
+  base.on("tileerror", () => {   // jika Esri gagal -> OpenStreetMap
+    if (usedFallback || ++tileErrors < 4) return;
+    usedFallback = true; map.removeLayer(base); map.removeLayer(ref);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { attribution: "&copy; OpenStreetMap contributors", maxZoom: 19, className: "soft-tiles" }).addTo(map);
+  });
+  map.fitBounds([[-10.5, 95], [6, 141]]);
+  map.on("click", () => map.scrollWheelZoom.enable());
+  map.on("mouseout", () => map.scrollWheelZoom.disable());
+
+  const metric = (ic, tone, l, v, s) =>
+    `<div class="metric"><span class="m-ico ${tone}">${icon(ic)}</span><div><div class="m-label">${l}</div><div class="m-value">${v}</div>${s ? `<div class="m-sub">${s}</div>` : ""}</div></div>`;
+
+  function sentraCard(s) {
+    return `<article class="scard">
+      <div class="scard-head"><h4>${esc(s.nama)}</h4>
+        <div class="badges"><span class="chip gold">${esc(s.divisi)}</span><span class="chip blue">Region ${s.region}</span></div></div>
+      <div class="mgrid">
+        ${metric("bank", "blue", "Total User / Bank", fmtNum(s.banks), "bank terlayani")}
+        ${metric("cash", "gold", "Total Kelolaan", fmtRp(s.kelolaan))}
+        ${metric("users", "violet", "Jumlah Pegawai", fmtNum(s.pegawai), "personil")}
+        ${metric("scale", "teal", "Rasio Kelolaan : Pegawai", fmtRp(s.rasio), "per pegawai")}
+      </div>
+      <div class="infra"><div class="infra-title">${icon("building")} Infrastruktur</div>
+        <div class="infra-row">
+          <div>${icon("calc")}<b>${fmtNum(s.mesinHitung)}</b><span>Mesin Hitung</span></div>
+          <div>${icon("layers")}<b>${fmtNum(s.mesinSortir)}</b><span>Mesin Sortir</span></div>
+          <div>${icon("truck")}<b>${fmtNum(s.mobil)}</b><span>Mobil CR FLM</span></div>
+        </div></div>
+      <div class="banks">${s.bankList.map((b) => `<span class="chip">${esc(b)}</span>`).join("")}</div>
+    </article>`;
+  }
+
+  function showPanel(cityName) {
+    const list = agg.sentras.filter((s) => s.kota === cityName);
+    const sumK = list.reduce((a, s) => a + s.kelolaan, 0), sumP = list.reduce((a, s) => a + s.pegawai, 0);
+    const banks = new Set(); list.forEach((s) => s.bankList.forEach((b) => banks.add(b.toLowerCase())));
+    $("#panel").innerHTML = `
+      <div class="city-head"><h3>${icon("pin")} ${esc(cityName)}</h3><span class="chip teal">${list.length} sentra</span></div>
+      ${list.length > 1 ? `<div class="city-sum"><div><b>${fmtRp(sumK)}</b>kelolaan kota</div><div><b>${banks.size}</b>user / bank</div><div><b>${fmtNum(sumP)}</b>pegawai</div></div>` : ""}
+      ${list.map(sentraCard).join("")}`;
+    $("#panel").scrollTop = 0;
+  }
+
+  function selectCity(name) {
+    activeCity = name;
+    Object.entries(pins).forEach(([n, el]) => el && el.classList.toggle("active", n === name));
+    showPanel(name);
+    const c = CITIES.find((x) => x.name === name);
+    if (c) map.flyTo([c.lat, c.lng], Math.max(map.getZoom(), 6), { duration: 0.8 });
+    if (window.innerWidth < 1020) $("#panel").scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function emptyPanel() {
+    $("#panel").innerHTML = `<div class="panel-empty"><div class="ring">${icon("pin")}</div>
+      <div><b>Pilih kota pada peta</b><br>Klik salah satu titik emas untuk menampilkan detail sentra di kota tersebut.</div></div>`;
+  }
+
+  function drawMap() {
+    markers.forEach((m) => m.remove()); markers = []; pins = {};
+    const byCity = {}, unplaced = [];
+    agg.sentras.forEach((s) => {
+      const c = CITIES.find((x) => x.name === s.kota);
+      if (c) (byCity[c.name] = byCity[c.name] || []).push(s); else unplaced.push(s);
+    });
+    const max = Math.max(1, ...Object.values(byCity).map((a) => a.reduce((x, s) => x + s.kelolaan, 0)));
+    Object.entries(byCity).forEach(([name, list]) => {
+      const c = CITIES.find((x) => x.name === name);
+      const v = list.reduce((x, s) => x + s.kelolaan, 0);
+      const size = Math.round(32 + 24 * Math.sqrt(v / max));
+      const ic = L.divIcon({ className: "pin-wrap", html: `<div class="pin">${list.length}</div>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+      const m = L.marker([c.lat, c.lng], { icon: ic, riseOnHover: true }).addTo(map);
+      m.bindTooltip(`<b>${esc(name)}</b> · ${fmtRp(v)}`, { direction: "top", offset: [0, -size / 2] });
+      m.on("click", () => selectCity(name));
+      markers.push(m);
+      setTimeout(() => { pins[name] = m.getElement() && m.getElement().querySelector(".pin"); if (name === activeCity && pins[name]) pins[name].classList.add("active"); }, 0);
+    });
+    $("#unplaced").textContent = unplaced.length
+      ? "Belum terpetakan (kota belum diisi atau tidak ada di daftar): " + unplaced.map((s) => s.nama).join(", ") : "";
+    if (activeCity && byCity[activeCity]) showPanel(activeCity); else { activeCity = null; emptyPanel(); }
+  }
+
+  /* ---------- KPI ---------- */
+  function countUp(el, target, fmt) {
+    const dur = 1100, t0 = performance.now();
+    (function step(t) {
+      const p = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(target * e);
+      if (p < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  function drawKpis() {
+    const t = agg.totals;
+    countUp($("#kKel"), t.kelolaan, (v) => fmtRp(v, true));
+    countUp($("#kBank"), t.banks, fmtNum);
+    countUp($("#kSentra"), t.sentra, fmtNum);
+    countUp($("#kPeg"), t.pegawai, fmtNum);
+    countUp($("#kMh"), t.mesinHitung, fmtNum);
+    countUp($("#kMs"), t.mesinSortir, fmtNum);
+    countUp($("#kMb"), t.mobil, fmtNum);
+    countUp($("#hSentra"), t.sentra, fmtNum);
+    countUp($("#hBank"), t.banks, fmtNum);
+    countUp($("#hKel"), t.kelolaan, (v) => fmtRp(v));
+    $("#kKelSub").textContent = t.sentra ? `Rata-rata ${fmtRp(t.kelolaan / t.sentra)} per sentra` : "";
+    $("#kBankSub").textContent = `bank unik · ${fmtNum(t.relasi)} relasi sentra–bank`;
+    $("#kSentraSub").textContent = "tersebar di 10 region";
+    $("#kPegSub").textContent = t.pegawai ? `Rasio nasional ${fmtRp(t.kelolaan / t.pegawai)} per pegawai` : "";
+
+    const top = agg.byCou[0];
+    const rg = Object.entries(agg.byRegion).sort((a, b) => b[1] - a[1])[0];
+    const dv = Object.entries(agg.byDivisi).sort((a, b) => b[1] - a[1])[0];
+    const items = [
+      ["trend", "gold", "COU kelolaan tertinggi", top ? `${esc(top.nama)} · ${fmtRp(top.kelolaan)}` : "–"],
+      ["map", "blue", "Region dengan kelolaan terbesar", rg && rg[1] ? `Region ${rg[0]} · ${fmtRp(rg[1])}` : "–"],
+      ["layers", "teal", "Divisi dominan", dv && dv[1] && t.kelolaan ? `${esc(dv[0])} · ${Math.round(dv[1] / t.kelolaan * 100)}% dari total` : "–"]
+    ];
+    $("#insights").innerHTML = items.map((i) => `<div class="insight"><span class="ico ${i[1]}">${icon(i[0])}</span><div><small>${i[2]}</small><b>${i[3]}</b></div></div>`).join("");
+  }
+
+  /* ---------- CHARTS ---------- */
+  function drawCharts() {
+    Chart.defaults.color = "#5d6a88";
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.borderColor = "rgba(14,26,58,.08)";
+    Object.values(charts).forEach((c) => c.destroy());
+    const tip = { backgroundColor: "#0b1535", titleColor: "#fff", bodyColor: "#dbe3ff", padding: 12, cornerRadius: 10, displayColors: false, titleFont: { weight: "700" } };
+    const grad = (rgb, horizontal) => (c) => {
+      const { ctx, chartArea } = c.chart; if (!chartArea) return `rgb(${rgb})`;
+      const g = horizontal ? ctx.createLinearGradient(chartArea.left, 0, chartArea.right, 0) : ctx.createLinearGradient(0, chartArea.bottom, 0, chartArea.top);
+      g.addColorStop(0, `rgba(${rgb},.35)`); g.addColorStop(1, `rgb(${rgb})`); return g;
+    };
+    const grid = { color: "rgba(14,26,58,.07)" };
+
+    const dv = [agg.byDivisi["Opr 1"] || 0, agg.byDivisi["Opr 2"] || 0], dTot = dv[0] + dv[1] || 1;
+    charts.d = new Chart($("#cDivisi"), {
+      type: "doughnut",
+      data: { labels: ["Opr 1", "Opr 2"], datasets: [{ data: dv, backgroundColor: ["#2748d8", "#e9b95a"], borderColor: "#fff", borderWidth: 6, hoverOffset: 10 }] },
+      options: { maintainAspectRatio: false, cutout: "68%", plugins: {
+        legend: { position: "bottom", labels: { usePointStyle: true, padding: 20, color: "#3f4b6b", font: { weight: "600" } } },
+        tooltip: { ...tip, callbacks: { label: (c) => ` ${c.label}: ${fmtRp(c.parsed)} (${(c.parsed / dTot * 100).toFixed(1)}%)` } } } }
+    });
+
+    const rg = Object.keys(agg.byRegion).map(Number).sort((a, b) => a - b);
+    charts.r = new Chart($("#cRegion"), {
+      type: "bar",
+      data: { labels: rg.map((r) => "R" + r), datasets: [{ data: rg.map((r) => agg.byRegion[r]), backgroundColor: grad("39,72,216"), borderRadius: 9, borderSkipped: false, maxBarThickness: 38 }] },
+      options: { maintainAspectRatio: false, plugins: { legend: { display: false },
+        tooltip: { ...tip, callbacks: { title: (i) => "Region " + rg[i[0].dataIndex], label: (c) => fmtRp(c.parsed.y, true) } } },
+        scales: { y: { beginAtZero: true, ticks: { callback: (v) => fmtRp(v) }, grid }, x: { grid: { display: false } } } }
+    });
+
+    const cou = agg.byCou;
+    $("#couBox").style.height = Math.max(320, cou.length * 38 + 60) + "px";
+    charts.c = new Chart($("#cCou"), {
+      type: "bar",
+      data: { labels: cou.map((s) => s.nama), datasets: [{ data: cou.map((s) => s.kelolaan), backgroundColor: grad("14,159,148", true), borderRadius: 9, borderSkipped: false, maxBarThickness: 24 }] },
+      options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false },
+        tooltip: { ...tip, callbacks: { label: (c) => fmtRp(c.parsed.x, true) } } },
+        scales: { x: { beginAtZero: true, ticks: { callback: (v) => fmtRp(v) }, grid }, y: { grid: { display: false } } } }
+    });
+  }
+
+  /* ---------- LOAD ---------- */
+  function setStatus(demo, failed) {
+    const hh = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    $("#status").innerHTML = demo
+      ? `<span class="dot demo"></span> ${failed ? "Gagal terhubung · data demo" : "Mode demo (GAS_URL kosong)"}`
+      : `<span class="dot"></span> Live · Google Sheets · ${hh}`;
+  }
+  async function refresh() {
+    const btn = $("#refresh"); btn.disabled = true;
+    try { const { raw, demo } = await A.loadData(); agg = A.aggregate(raw); setStatus(demo); }
+    catch (e) { A.toast("Gagal memuat Google Sheets: " + e.message + ". Menampilkan data demo.", "error"); agg = A.aggregate(A.seedRaw()); setStatus(true, true); }
+    drawMap(); drawKpis(); drawCharts(); btn.disabled = false;
+  }
+  $("#refresh").addEventListener("click", refresh);
+  emptyPanel(); refresh();
+
+  /* ---------- reveal + nav spy ---------- */
+  const io = new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); } }), { threshold: 0.08 });
+  document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+  const links = [...document.querySelectorAll("[data-spy]")];
+  const spy = new IntersectionObserver((es) => es.forEach((e) => {
+    if (e.isIntersecting) links.forEach((l) => l.classList.toggle("active", l.getAttribute("href") === "#" + e.target.id));
+  }), { rootMargin: "-45% 0px -50% 0px" });
+  ["peta", "dashboard"].forEach((id) => spy.observe(document.getElementById(id)));
+})();
+</script>
+</body>
+</html>

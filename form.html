@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentra Hub – Input Data Sentra</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2316277a'/%3E%3Cstop offset='1' stop-color='%232748d8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-size='34' font-weight='800' text-anchor='middle' fill='%23ffe3a1' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-in">
+    <a class="brand" href="index.html#top">
+      <div class="brand-mark"><svg class="ic"><use href="#i-bank"/></svg></div>
+      <div class="t"><span class="t">SENTRA HUB</span><small>Cash Operations</small></div>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#peta"><svg class="ic"><use href="#i-map"/></svg><span class="lbl">Peta Sentra</span></a>
+      <a href="index.html#dashboard"><svg class="ic"><use href="#i-chart"/></svg><span class="lbl">Dashboard</span></a>
+      <a href="form.html" class="cta"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Input Data</span></a>
+    </div>
+  </div>
+</nav>
+
+<main class="container" style="max-width:980px">
+  <div class="form-hero-wrap">
+    <section class="hero compact">
+      <div class="hero-copy">
+        <span class="pill-light"><svg class="ic"><use href="#i-save"/></svg> FORM INPUT DATA</span>
+        <h1>Catat data sentra,<br><span class="hl">tampil seketika di peta.</span></h1>
+        <p class="lead">Isi empat langkah singkat di bawah. Data langsung tersimpan ke Google Sheets dan otomatis muncul di peta serta dashboard. Mengisi nama sentra yang sudah ada akan memperbarui datanya.</p>
+        <div class="steps-row">
+          <span class="step-chip"><svg class="ic"><use href="#i-pin"/></svg> Identitas</span>
+          <span class="step-chip"><svg class="ic"><use href="#i-bank"/></svg> Kelolaan</span>
+          <span class="step-chip"><svg class="ic"><use href="#i-users"/></svg> Personil</span>
+          <span class="step-chip"><svg class="ic"><use href="#i-truck"/></svg> Infrastruktur</span>
+        </div>
+        <p style="margin-top:18px"><span class="chip" id="status" style="background:rgba(255,255,255,.12);color:#fff;border-color:rgba(255,255,255,.25)"><span class="dot demo"></span> …</span></p>
+      </div>
+      <div class="art-wrap" id="heroArt"></div>
+    </section>
+  </div>
+
+  <form id="f" novalidate autocomplete="off">
+
+    <!-- SECTION 1 -->
+    <section class="card fsec">
+      <div class="fsec-head"><span class="ico blue"><svg class="ic"><use href="#i-pin"/></svg></span>
+        <div><small>Langkah 1 dari 4</small><h2>Identitas Sentra</h2><p>Nama, lokasi, divisi, dan region</p></div></div>
+      <div class="grid g2">
+        <div class="field full" id="fNama"><label for="nama">Nama Sentra / COU <i>*</i></label>
+          <input id="nama" list="dlSentra" placeholder="mis. COU Jakarta Pusat" maxlength="80"><datalist id="dlSentra"></datalist></div>
+        <div class="field" id="fKota"><label for="kota">Kota (titik di peta)</label>
+          <select id="kota"><option value="">— Pilih kota —</option></select>
+          <div class="hint">Menentukan posisi sentra pada peta di landing page</div></div>
+        <div class="field" id="fDivisi"><label for="divisi">Divisi <i>*</i></label>
+          <select id="divisi"><option value="">— Pilih divisi —</option><option>Opr 1</option><option>Opr 2</option></select></div>
+        <div class="field" id="fRegion"><label for="region">Region <i>*</i></label>
+          <select id="region"><option value="">— Pilih region —</option></select></div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="card fsec">
+      <div class="fsec-head"><span class="ico gold"><svg class="ic"><use href="#i-bank"/></svg></span>
+        <div class="grow"><small>Langkah 2 dari 4</small><h2>User & Kelolaan</h2><p>Tambahkan satu baris untuk setiap bank</p></div>
+        <button type="button" class="btn btn-blue btn-sm" id="addRow"><svg class="ic"><use href="#i-plus"/></svg> Tambah</button></div>
+      <datalist id="dlBank"><option>BCA</option><option>Mandiri</option><option>BNI</option><option>BRI</option><option>BTN</option><option>BSI</option><option>CIMB Niaga</option><option>Permata</option><option>Danamon</option><option>OCBC</option><option>Maybank</option><option>Panin</option></datalist>
+      <div id="rows"></div>
+      <div class="total-pill"><span>Total kelolaan sentra ini · <span id="tBankN">0</span> bank</span><b id="tKel">Rp 0</b></div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="card fsec">
+      <div class="fsec-head"><span class="ico violet"><svg class="ic"><use href="#i-users"/></svg></span>
+        <div><small>Langkah 3 dari 4</small><h2>Personil</h2><p>Jumlah pegawai per posisi</p></div></div>
+      <div class="grid g3" id="persGrid"></div>
+      <div class="total-pill"><span>Total pegawai (poin 1 – 7)</span><b id="tPeg">0</b></div>
+    </section>
+
+    <!-- SECTION 4 -->
+    <section class="card fsec">
+      <div class="fsec-head"><span class="ico teal"><svg class="ic"><use href="#i-truck"/></svg></span>
+        <div><small>Langkah 4 dari 4</small><h2>Infrastruktur</h2><p>Unit mesin dan armada yang dimiliki sentra</p></div></div>
+      <div class="grid g3">
+        <div class="field"><label for="mh">Jumlah Mesin Hitung</label><input id="mh" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></div>
+        <div class="field"><label for="ms">Jumlah Mesin Sortir</label><input id="ms" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></div>
+        <div class="field"><label for="mb">Jumlah Mobil CR FLM</label><input id="mb" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></div>
+      </div>
+    </section>
+
+    <div class="submit-bar">
+      <div class="sum">
+        <div><b id="sKel">Rp 0</b>Total kelolaan</div>
+        <div><b id="sPeg">0</b>Total pegawai</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button type="reset" class="btn" id="btnReset">Reset</button>
+        <button type="submit" class="btn btn-gold" id="btnSave"><svg class="ic"><use href="#i-check"/></svg> Simpan Data</button>
+      </div>
+    </div>
+  </form>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="foot-top">
+      <div>
+        <div class="brand"><div class="brand-mark"><svg class="ic"><use href="#i-bank"/></svg></div><div><span>SENTRA HUB</span><small>Cash Operations</small></div></div>
+        <p>Dashboard terpadu untuk memantau kelolaan, personil, dan infrastruktur seluruh sentra.</p>
+      </div>
+      <div class="foot-links">
+        <a href="index.html#peta"><svg class="ic"><use href="#i-map"/></svg> Peta Sentra</a>
+        <a href="index.html#dashboard"><svg class="ic"><use href="#i-chart"/></svg> Dashboard</a>
+        <a href="form.html"><svg class="ic"><use href="#i-plus"/></svg> Input Data</a>
+      </div>
+    </div>
+    <div class="foot-bot"><span>© <span id="yr"></span> Sentra Hub</span><span>Data bersumber dari Google Sheets via Apps Script</span></div>
+  </div>
+</footer>
+
+<script src="api.js"></script>
+<script>
+(function () {
+  "use strict";
+  const A = window.SentraAPI, { fmtRp, fmtNum, esc, icon } = A;
+  const $ = (s) => document.querySelector(s);
+  $("#yr").textContent = new Date().getFullYear();
+  $("#heroArt").innerHTML = A.heroArt();
+
+  const PERS = [
+    ["driver", "Jumlah Pegawai Driver"], ["custody_restock", "Jumlah Pegawai Custody Restock"], ["custody_flm", "Jumlah Pegawai Custody-FLM"],
+    ["custody_driver", "Jumlah Pegawai Custody-Driver"], ["admin", "Jumlah Pegawai Admin"], ["manager", "Jumlah Manager"], ["asmen", "Jumlah Asmen"]
+  ];
+
+  // opsi dropdown
+  A.CITIES.forEach((c) => $("#kota").insertAdjacentHTML("beforeend", `<option>${esc(c.name)}</option>`));
+  for (let i = 1; i <= 10; i++) $("#region").insertAdjacentHTML("beforeend", `<option>${i}</option>`);
+  $("#persGrid").innerHTML = PERS.map(([k, l], i) =>
+    `<div class="field"><label for="p_${k}">${i + 1}) ${l}</label><input id="p_${k}" data-p="${k}" type="number" min="0" step="1" inputmode="numeric" placeholder="0"></div>`).join("");
+
+  // status koneksi + daftar sentra existing
+  A.loadData().then(({ raw, demo }) => {
+    $("#status").innerHTML = demo ? `<span class="dot demo"></span> Mode demo — data tersimpan di browser ini` : `<span class="dot"></span> Terhubung ke Google Sheets`;
+    $("#dlSentra").innerHTML = (raw.sentra || []).map((s) => `<option value="${esc(s.nama_sentra)}">`).join("");
+  }).catch(() => { $("#status").innerHTML = `<span class="dot demo"></span> Belum bisa terhubung ke Google Sheets`; });
+
+  /* ----- baris user & kelolaan ----- */
+  const parseMoney = (v) => Number(String(v).replace(/\D/g, "")) || 0;
+  function addRow(d) {
+    d = d || {};
+    const el = document.createElement("div");
+    el.className = "krow";
+    el.innerHTML = `
+      <div class="field"><label>Nama Bank</label><input class="r-bank" list="dlBank" placeholder="mis. BCA" maxlength="60" value="${esc(d.bank || "")}"></div>
+      <div class="field"><label>Bisnis</label><select class="r-bisnis"><option>CR &amp; FLM</option><option>CIT</option><option>SLM</option></select></div>
+      <div class="field"><label>Jumlah Kelolaan (Rp)</label><input class="r-jml" inputmode="numeric" placeholder="0" value="${d.jml ? fmtNum(d.jml) : ""}"><div class="hint r-hint"></div></div>
+      <button type="button" class="icon-btn r-del" title="Hapus baris" aria-label="Hapus baris">${icon("x")}</button>`;
+    $("#rows").appendChild(el);
+    if (d.bisnis) el.querySelector(".r-bisnis").value = d.bisnis;
+    recalc();
+  }
+  $("#addRow").addEventListener("click", () => { addRow(); $("#rows").lastElementChild.querySelector(".r-bank").focus(); });
+  $("#rows").addEventListener("click", (e) => {
+    if (!e.target.closest(".r-del")) return;
+    if ($("#rows").children.length === 1) { $("#rows").firstElementChild.querySelectorAll("input").forEach((i) => (i.value = "")); }
+    else e.target.closest(".krow").remove();
+    recalc();
+  });
+  $("#rows").addEventListener("input", (e) => {
+    if (e.target.classList.contains("r-jml")) {
+      const n = parseMoney(e.target.value);
+      e.target.value = n ? fmtNum(n) : "";
+      e.target.parentElement.querySelector(".r-hint").textContent = n ? "≈ " + fmtRp(n, true) : "";
+    }
+    recalc();
+  });
+
+  function readRows() {
+    return [...document.querySelectorAll(".krow")].map((r) => ({
+      el: r, bank: r.querySelector(".r-bank").value.trim(), bisnis: r.querySelector(".r-bisnis").value, jml: parseMoney(r.querySelector(".r-jml").value)
+    }));
+  }
+  const nInt = (v) => Math.max(0, Math.floor(Number(v) || 0));
+  function recalc() {
+    const rows = readRows().filter((r) => r.bank || r.jml);
+    const tot = rows.reduce((a, r) => a + r.jml, 0);
+    const bankN = new Set(rows.filter((r) => r.bank).map((r) => r.bank.toLowerCase())).size;
+    const peg = PERS.reduce((a, [k]) => a + nInt($("#p_" + k).value), 0);
+    $("#tKel").textContent = fmtRp(tot, true); $("#sKel").textContent = fmtRp(tot);
+    $("#tBankN").textContent = bankN; $("#tPeg").textContent = fmtNum(peg); $("#sPeg").textContent = fmtNum(peg);
+  }
+  document.addEventListener("input", (e) => { if (e.target.matches("[data-p]")) recalc(); });
+
+  /* ----- validasi & submit ----- */
+  const mark = (id, bad) => $("#" + id).classList.toggle("err", !!bad);
+  ["nama", "divisi", "region"].forEach((k) => $("#" + k).addEventListener("input", () => mark("f" + k[0].toUpperCase() + k.slice(1), false)));
+  const saveLabel = `${icon("check")} Simpan Data`;
+
+  $("#f").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nama = $("#nama").value.trim(), divisi = $("#divisi").value, region = $("#region").value;
+    mark("fNama", !nama); mark("fDivisi", !divisi); mark("fRegion", !region);
+    if (!nama || !divisi || !region) { A.toast("Lengkapi nama sentra, divisi, dan region.", "error"); window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+
+    const rows = readRows().filter((r) => r.bank || r.jml);
+    document.querySelectorAll(".krow").forEach((r) => (r.style.outline = ""));
+    const bad = rows.find((r) => !r.bank || r.jml <= 0);
+    if (!rows.length || bad) {
+      if (bad) { bad.el.style.outline = "2px solid var(--danger)"; bad.el.scrollIntoView({ behavior: "smooth", block: "center" }); }
+      A.toast(!rows.length ? "Tambahkan minimal satu bank beserta jumlah kelolaannya." : "Setiap baris wajib berisi nama bank dan jumlah kelolaan > 0.", "error");
+      return;
+    }
+
+    const personil = {}; PERS.forEach(([k]) => (personil[k] = nInt($("#p_" + k).value)));
+    const payload = {
+      sentra: { nama_sentra: nama, divisi, region: Number(region), kota: $("#kota").value },
+      kelolaan: rows.map((r) => ({ nama_bank: r.bank, bisnis: r.bisnis, jumlah_kelolaan: r.jml })),
+      personil,
+      infrastruktur: { mesin_hitung: nInt($("#mh").value), mesin_sortir: nInt($("#ms").value), mobil_cr_flm: nInt($("#mb").value) }
+    };
+
+    const btn = $("#btnSave"); btn.disabled = true; btn.textContent = "Menyimpan…";
+    try {
+      const res = await A.submitData(payload);
+      A.toast(res.demo ? "Tersimpan (mode demo, di browser ini). Isi GAS_URL di api.js untuk ke Google Sheets." : "Data berhasil disimpan ke Google Sheets ✓", "ok");
+      $("#f").reset(); $("#rows").innerHTML = ""; addRow(); recalc();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      A.toast("Gagal menyimpan: " + err.message, "error");
+    } finally { btn.disabled = false; btn.innerHTML = saveLabel; }
+  });
+  $("#f").addEventListener("reset", () => setTimeout(() => { $("#rows").innerHTML = ""; addRow(); recalc(); document.querySelectorAll(".err").forEach((x) => x.classList.remove("err")); }, 0));
+
+  addRow();
+})();
+</script>
+</body>
+</html>
