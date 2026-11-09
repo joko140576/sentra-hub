@@ -9,7 +9,7 @@
   "use strict";
 
   const CONFIG = {
-    GAS_URL: "https://script.google.com/macros/s/AKfycby105-T2Sk5FOOiHUTN7COV66Fzg6JMbsyMnuTYGSgmC-SjztCej89ahIIlJbsL4i-9LA/exec" // contoh: "https://script.google.com/macros/s/AKfycb.../exec"
+    GAS_URL: "https://script.google.com/macros/s/AKfycbwWYvsxVdYzOPU8s9w7b32nGiC6nlOoZwKinenuq4VVMZ7jM1l4qProXR2h_DlSeT7zQA/exec" // contoh: "https://script.google.com/macros/s/AKfycb.../exec"
   };
 
   // Kota-kota besar yang tampil di peta (field "kota" pada form menentukan titiknya)
@@ -296,8 +296,11 @@
       byDivisi[s.divisi] = (byDivisi[s.divisi] || 0) + s.kelolaan;
       if (s.region) byRegion[s.region] = (byRegion[s.region] || 0) + s.kelolaan;
     });
+    // total bank = daftar header kolom sheet Kelolaan (dari backend); fallback: bank yang punya nilai
+    const hdr = new Set((raw0.banks || []).map((b) => nkey(b)).filter(Boolean));
+    const totalBanks = hdr.size || allBanks.size;
     const totals = {
-      banks: allBanks.size, relasi, sentra: sentras.length, kelolaan: sum((s) => s.kelolaan), pegawai: sum((s) => s.pegawai),
+      banks: totalBanks, relasi, sentra: sentras.length, kelolaan: sum((s) => s.kelolaan), pegawai: sum((s) => s.pegawai),
       mesinHitung: sum((s) => s.mesinHitung), mesinSortir: sum((s) => s.mesinSortir), mobil: sum((s) => s.mobil)
     };
     const byCou = [...sentras].sort((a, b) => b.kelolaan - a.kelolaan);
