@@ -9,7 +9,7 @@
   "use strict";
 
   const CONFIG = {
-    GAS_URL: "https://script.google.com/macros/s/AKfycbwu40bb42I-srv_B3TwcOw8oOt7LlTKNIIDEev3XUO3emQsO9KV-iADWQj8BaiBgp4/exec" // contoh: "https://script.google.com/macros/s/AKfycb.../exec"
+    GAS_URL: "https://script.google.com/macros/s/AKfycby105-T2Sk5FOOiHUTN7COV66Fzg6JMbsyMnuTYGSgmC-SjztCej89ahIIlJbsL4i-9LA/exec" // contoh: "https://script.google.com/macros/s/AKfycb.../exec"
   };
 
   // Kota-kota besar yang tampil di peta (field "kota" pada form menentukan titiknya)
@@ -98,7 +98,16 @@
   {"name": "Ternate", "lat": 0.7833, "long": 127.3667}
   ];
 
-  // ---- Data dummy (kelolaan dalam MILIAR rupiah; personil = [driver, custody restock, custody FLM, custody driver, admin, manager, asmen]; infra = [mesin hitung, mesin sortir, mobil CR FLM])
+  // Tambahan kota yang dipakai data tapi belum ada di daftar, + alias ejaan
+  [
+    {"name": "Jakarta", "lat": -6.2088, "long": 106.8456},
+    {"name": "Makassar", "lat": -5.1477, "long": 119.4327},
+    {"name": "Surabaya", "lat": -7.2575, "long": 112.7521}
+  ].forEach(function (c) { if (!CITIES.some(function (x) { return x.name === c.name; })) CITIES.push(c); });
+  // index.html membaca c.lng, sedangkan data memakai "long" -> samakan keduanya
+  CITIES.forEach(function (c) { c.lng = c.long; });
+
+  // ---- Data dummy (kelolaan = JUMLAH (angka biasa, bukan Rp); personil = [driver, custody restock, custody FLM, custody driver, admin, manager, asmen]; infra = [mesin hitung, mesin sortir, mobil CR FLM])
   const SEED = /*SEED_START*/[
 {"nama":"COU Jakarta Pusat","divisi":"Opr 1","region":1,"kota":"Jakarta","banks":[["BCA","CR & FLM",120],["Mandiri","CIT",95],["BNI","SLM",60],["BRI","CR & FLM",80],["CIMB Niaga","CIT",40]],"personil":[28,14,8,6,5,3,2],"infra":[22,12,26]},
 {"nama":"COU Jakarta Selatan","divisi":"Opr 1","region":1,"kota":"Jakarta","banks":[["BCA","CIT",70],["Permata","CR & FLM",35],["Danamon","SLM",28],["OCBC","CR & FLM",30]],"personil":[18,9,5,4,3,2,1],"infra":[14,8,17]},
@@ -125,9 +134,51 @@
     if (a >= 1e6) return "Rp " + nf(1).format(n / 1e6) + (long ? " Juta" : " Jt");
     return "Rp " + nf(0).format(n);
   }
+  // ---------- rasio Pegawai : Kelolaan  (format "1 : N") ----------
+  // N = jumlah kelolaan per 1 pegawai. Ideal = 1 : 5
+  //   N < 5  -> merah (di bawah ideal) | N = 5 -> orange (ideal) | N > 5 -> hijau (di atas ideal)
+  const RASIO_IDEAL = 5;
+  function rasioInfo(kelolaan, pegawai) {
+    const k = Number(kelolaan) || 0, p = Number(pegawai) || 0;
+    if (!p) return { text: "–", cls: "r-none", status: "belum ada data pegawai", n: 0 };
+    const n = Math.round((k / p) * 10) / 10;
+    const text = "1 : " + nf(1).format(n);
+    if (n < RASIO_IDEAL) return { text, cls: "r-bad", status: "di bawah ideal (1 : " + RASIO_IDEAL + ")", n };
+    if (n > RASIO_IDEAL) return { text, cls: "r-good", status: "di atas ideal (1 : " + RASIO_IDEAL + ")", n };
+    return { text, cls: "r-mid", status: "ideal (1 : " + RASIO_IDEAL + ")", n };
+  }
+  const fmtRasio = (k, p) => { const r = rasioInfo(k, p); return `<span class="rasio ${r.cls}">${r.text}</span>`; };
   const esc = (s) =>
     String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const num = (v) => { const n = Number(v); return isFinite(n) ? n : 0; };
+  const num = (v) => {
+    if (typeof v === "number") return isFinite(v) ? v : 0;
+    let t = String(v == null ? "" : v).trim().replace(/[^0-9.,\-]/g, "");
+    if (!t) return 0;
+    if (t.includes(".") && t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+    else if ((t.match(/\./g) || []).length > 1) t = t.replace(/\./g, "");
+    else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, "");
+    else if (t.includes(",")) t = /^-?\d{1,3}(,\d{3})+$/.test(t) ? t.replace(/,/g, "") : t.replace(",", ".");
+    const n = Number(t); return isFinite(n) ? n : 0;
+  };
+  const normKey = (k) => String(k).trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  const normRows = (arr) => (arr || []).map((r) => { const o = {}; Object.keys(r).forEach((k) => (o[normKey(k)] = r[k])); if (o.id_sentra === undefined && o.id !== undefined) o.id_sentra = o.id; return o; });
+  const sid = (v) => String(v == null ? "" : v).trim().toUpperCase();
+  const nkey = (v) => String(v == null ? "" : v).trim().toLowerCase().replace(/\s+/g, " ");
+  const cityKey = (v) => nkey(v).replace(/^(cou|sentra)\s+/, "").replace(/[^a-z0-9 ]/g, "").replace(/\s+\d+$/, "");
+  const ALIAS = { makasar: "makassar", "tj pinang": "tanjung pinang", "tanjungpinang": "tanjung pinang", "jakarta pusat": "jakarta", "jakarta selatan": "jakarta", "jakarta barat": "jakarta", "jakarta timur": "jakarta", "jakarta utara": "jakarta", "kota bandung": "bandung", "kota surabaya": "surabaya", "yogya": "yogyakarta", "jogja": "yogyakarta", "solo": "solo", "surakarta": "solo", "bandar lampung": "bandar lampung", "lampung": "bandar lampung" };
+  // cari kota dari kolom "kota", jika gagal coba dari nama sentra
+  function findCity(kota, nama) {
+    const cands = [kota, nama];
+    for (const raw of cands) {
+      let k = cityKey(raw); if (!k) continue;
+      k = ALIAS[k] || k;
+      let c = CITIES.find((x) => cityKey(x.name) === k);
+      if (c) return c;
+      c = CITIES.find((x) => { const n = cityKey(x.name); return n.length > 3 && (k.includes(n) || n.includes(k)); });
+      if (c) return c;
+    }
+    return null;
+  }
 
   function toast(msg, type) {
     let wrap = document.querySelector(".toast-wrap");
@@ -145,7 +196,7 @@
     SEED.forEach((s, i) => {
       const id = "S" + String(i + 1).padStart(2, "0");
       raw.sentra.push({ id, nama_sentra: s.nama, divisi: s.divisi, region: s.region, kota: s.kota });
-      s.banks.forEach((b) => raw.kelolaan.push({ id_sentra: id, nama_sentra: s.nama, nama_bank: b[0], bisnis: b[1], jumlah_kelolaan: b[2] * 1e9 }));
+      s.banks.forEach((b) => raw.kelolaan.push({ id_sentra: id, nama_sentra: s.nama, nama_bank: b[0], bisnis: b[1], jumlah_kelolaan: b[2] }));
       const p = s.personil;
       raw.personil.push({ id_sentra: id, nama_sentra: s.nama, driver: p[0], custody_restock: p[1], custody_flm: p[2], custody_driver: p[3], admin: p[4], manager: p[5], asmen: p[6] });
       raw.infrastruktur.push({ id_sentra: id, nama_sentra: s.nama, mesin_hitung: s.infra[0], mesin_sortir: s.infra[1], mobil_cr_flm: s.infra[2] });
@@ -201,14 +252,18 @@
   }
 
   // ---------- agregasi ----------
-  function aggregate(raw) {
-    const group = (arr, key) => (arr || []).reduce((m, r) => { (m[r[key]] = m[r[key]] || []).push(r); return m; }, {});
+  function aggregate(raw0) {
+    const raw = { sentra: normRows(raw0.sentra), kelolaan: normRows(raw0.kelolaan), personil: normRows(raw0.personil), infrastruktur: normRows(raw0.infrastruktur) };
+    const group = (arr, key) => (arr || []).reduce((m, r) => { const g = sid(r[key]); (m[g] = m[g] || []).push(r); return m; }, {});
+    const byName = (arr) => (arr || []).reduce((m, r) => { const g = nkey(r.nama_sentra); (m[g] = m[g] || []).push(r); return m; }, {});
     const kel = group(raw.kelolaan, "id_sentra"), per = group(raw.personil, "id_sentra"), inf = group(raw.infrastruktur, "id_sentra");
+    const kelN = byName(raw.kelolaan), perN = byName(raw.personil), infN = byName(raw.infrastruktur);
+    const pick = (byId, byNm, s) => { const a = byId[sid(s.id)]; return a && a.length ? a : (byNm[nkey(s.nama_sentra)] || []); };
     const allBanks = new Set();
     let relasi = 0;
 
-    const sentras = (raw.sentra || []).map((s) => {
-      const k = kel[s.id] || [], p = (per[s.id] || [])[0] || {}, i = (inf[s.id] || [])[0] || {};
+    const sentras = (raw.sentra || []).filter((s) => s.nama_sentra || s.id).map((s) => {
+      const k = pick(kel, kelN, s), p = pick(per, perN, s)[0] || {}, i = pick(inf, infN, s)[0] || {};
       const bankSet = new Map();
       const byBisnis = {};
       let kelolaan = 0;
@@ -224,9 +279,10 @@
         driver: num(p.driver), custody_restock: num(p.custody_restock), custody_flm: num(p.custody_flm),
         custody_driver: num(p.custody_driver), admin: num(p.admin), manager: num(p.manager), asmen: num(p.asmen)
       };
-      const pegawai = Object.values(pers).reduce((a, b) => a + b, 0);
+      let pegawai = Object.values(pers).reduce((a, b) => a + b, 0);
+      if (!pegawai) pegawai = num(p.total_pegawai);
       return {
-        id: s.id, nama: s.nama_sentra, divisi: s.divisi, region: Number(s.region), kota: s.kota || "",
+        id: s.id, nama: s.nama_sentra, divisi: String(s.divisi || "").trim().replace(/^opr\s*(\d)/i, "Opr $1"), region: parseInt(String(s.region == null ? "" : s.region).replace(/\D/g, ""), 10) || 0, kota: s.kota || "",
         banks: bankSet.size, bankList: [...bankSet.values()], kelolaan, byBisnis, pers, pegawai,
         rasio: pegawai ? kelolaan / pegawai : 0,
         mesinHitung: num(i.mesin_hitung), mesinSortir: num(i.mesin_sortir), mobil: num(i.mobil_cr_flm)
@@ -238,7 +294,7 @@
     const byRegion = {}; for (let r = 1; r <= 10; r++) byRegion[r] = 0;
     sentras.forEach((s) => {
       byDivisi[s.divisi] = (byDivisi[s.divisi] || 0) + s.kelolaan;
-      byRegion[s.region] = (byRegion[s.region] || 0) + s.kelolaan;
+      if (s.region) byRegion[s.region] = (byRegion[s.region] || 0) + s.kelolaan;
     });
     const totals = {
       banks: allBanks.size, relasi, sentra: sentras.length, kelolaan: sum((s) => s.kelolaan), pegawai: sum((s) => s.pegawai),
@@ -323,5 +379,5 @@
 </svg>`;
   }
 
-  window.SentraAPI = { CONFIG, CITIES, loadData, submitData, aggregate, seedRaw, fmtNum, fmtRp, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
+  window.SentraAPI = { CONFIG, CITIES, findCity, loadData, submitData, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
 })();
