@@ -37,6 +37,7 @@ function doGet(e) {
       ok: true,
       sentra: readSheet_('Sentra'),
       kelolaan: readKelolaan_(),
+      banks: readBankHeaders_(),
       personil: readSheet_('Personil'),
       infrastruktur: readSheet_('Infrastruktur'),
       ts: new Date().toISOString()
@@ -122,6 +123,24 @@ function toNum_(v) {
   return isFinite(n) ? n : 0;
 }
 function normName_(v) { return String(v == null ? '' : v).trim().toLowerCase().replace(/\s+/g, ' ').replace(/^cou\s+/, ''); }
+
+// daftar bank = header kolom C dst. di sheet Kelolaan (format horizontal),
+// atau nilai unik kolom nama_bank (format lama). Dipakai untuk total user/bank.
+function readBankHeaders_() {
+  const sh = sheet_('Kelolaan');
+  const v = sh.getDataRange().getValues();
+  if (!v.length) return [];
+  const h = v[0].map(function (x) { return String(x).trim(); });
+  const seen = {}, out = [];
+  const add = function (name) {
+    const k = String(name).trim().toLowerCase().replace(/\s+/g, ' ');
+    if (k && !seen[k]) { seen[k] = 1; out.push(String(name).trim()); }
+  };
+  const iBank = h.map(function (x) { return x.toLowerCase(); }).indexOf('nama_bank');
+  if (iBank >= 0) v.slice(1).forEach(function (r) { add(r[iBank]); });
+  else for (var c = 2; c < h.length; c++) add(h[c]);
+  return out;
+}
 
 function readKelolaan_() {
   const sh = sheet_('Kelolaan');
