@@ -292,7 +292,7 @@
     countUp($("#hBank"), t.banks, fmtNum);
     countUp($("#hKel"), t.kelolaan, (v) => fmtNum(v));
     $("#kKelSub").textContent = t.sentra ? `Rata-rata ${fmtNum(t.kelolaan / t.sentra)} per sentra` : "";
-    $("#kBankSub").textContent = `bank unik · ${fmtNum(t.relasi)} relasi sentra–bank`;
+    $("#kBankSub").textContent = `bank unik terdaftar di sheet Kelolaan`;
     $("#kSentraSub").textContent = "tersebar di 10 region";
     $("#kPegSub").innerHTML = t.pegawai ? `Rasio nasional ${fmtRasio(t.kelolaan, t.pegawai)}` : "";
 
