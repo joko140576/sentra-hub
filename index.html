@@ -11,6 +11,14 @@
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="styles.css">
+<style>
+/* rasio pegawai : kelolaan */
+.rasio{display:inline-block;padding:2px 12px;border-radius:999px;font-weight:800;letter-spacing:.02em;color:#fff;white-space:nowrap;line-height:1.5}
+.rasio.r-bad{background:#e5484d}
+.rasio.r-mid{background:#f59e0b}
+.rasio.r-good{background:#16a34a}
+.rasio.r-none{background:#94a3b8}
+</style>
 </head>
 <body>
 
@@ -60,7 +68,7 @@
       <div>
         <span class="eyebrow"><svg class="ic"><use href="#i-pin"/></svg> Peta Sebaran Sentra</span>
         <h2 class="title">Temukan sentra di setiap kota besar</h2>
-        <p class="lead-dark">Klik titik emas untuk melihat total user/bank, kelolaan, pegawai, rasio kelolaan per pegawai, serta mesin hitung, mesin sortir, dan mobil.</p>
+        <p class="lead-dark">Klik titik emas untuk melihat total user/bank, kelolaan, pegawai, rasio pegawai : kelolaan, serta mesin hitung, mesin sortir, dan mobil.</p>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <span class="chip" id="status"><span class="dot demo"></span> Memuat…</span>
@@ -141,7 +149,7 @@
       <div class="chart-head"><span class="ico teal"><svg class="ic"><use href="#i-building"/></svg></span><div><h3>Kelolaan per COU</h3><p>Diurutkan dari kelolaan terbesar</p></div></div>
       <div class="chart-box" id="couBox"><canvas id="cCou"></canvas></div>
     </div>
-    <p class="note">Keterangan: M = Miliar · T = Triliun · Jt = Juta (Rupiah)</p>
+    <p class="note">Rasio Pegawai : Kelolaan = jumlah kelolaan per 1 pegawai. Ideal 1 : 5 (<span class="rasio r-mid">oranye</span>) · di bawah ideal <span class="rasio r-bad">merah</span> · di atas ideal <span class="rasio r-good">hijau</span>.</p>
   </div>
 </section>
 
@@ -169,7 +177,7 @@
 (function () {
   "use strict";
   const A = window.SentraAPI;
-  const { fmtRp, fmtNum, esc, icon, CITIES } = A;
+  const { rasioInfo, fmtRasio, fmtNum, esc, icon, CITIES, findCity } = A;
   const $ = (s) => document.querySelector(s);
   let agg = null, charts = {}, pins = {}, markers = [], activeCity = null;
   $("#yr").textContent = new Date().getFullYear();
@@ -199,9 +207,9 @@
         <div class="badges"><span class="chip gold">${esc(s.divisi)}</span><span class="chip blue">Region ${s.region}</span></div></div>
       <div class="mgrid">
         ${metric("bank", "blue", "Total User / Bank", fmtNum(s.banks), "bank terlayani")}
-        ${metric("cash", "gold", "Total Kelolaan", fmtRp(s.kelolaan))}
+        ${metric("cash", "gold", "Total Kelolaan", fmtNum(s.kelolaan))}
         ${metric("users", "violet", "Jumlah Pegawai", fmtNum(s.pegawai), "personil")}
-        ${metric("scale", "teal", "Rasio Kelolaan : Pegawai", fmtRp(s.rasio), "per pegawai")}
+        ${metric("scale", "teal", "Rasio Pegawai : Kelolaan", fmtRasio(s.kelolaan, s.pegawai), rasioInfo(s.kelolaan, s.pegawai).status)}
       </div>
       <div class="infra"><div class="infra-title">${icon("building")} Infrastruktur</div>
         <div class="infra-row">
@@ -214,12 +222,12 @@
   }
 
   function showPanel(cityName) {
-    const list = agg.sentras.filter((s) => s.kota === cityName);
+    const list = agg.sentras.filter((s) => { const c = findCity(s.kota, s.nama); return c && c.name === cityName; });
     const sumK = list.reduce((a, s) => a + s.kelolaan, 0), sumP = list.reduce((a, s) => a + s.pegawai, 0);
     const banks = new Set(); list.forEach((s) => s.bankList.forEach((b) => banks.add(b.toLowerCase())));
     $("#panel").innerHTML = `
       <div class="city-head"><h3>${icon("pin")} ${esc(cityName)}</h3><span class="chip teal">${list.length} sentra</span></div>
-      ${list.length > 1 ? `<div class="city-sum"><div><b>${fmtRp(sumK)}</b>kelolaan kota</div><div><b>${banks.size}</b>user / bank</div><div><b>${fmtNum(sumP)}</b>pegawai</div></div>` : ""}
+      ${list.length > 1 ? `<div class="city-sum"><div><b>${fmtNum(sumK)}</b>kelolaan kota</div><div><b>${banks.size}</b>user / bank</div><div><b>${fmtNum(sumP)}</b>pegawai</div></div>` : ""}
       ${list.map(sentraCard).join("")}`;
     $("#panel").scrollTop = 0;
   }
@@ -242,7 +250,7 @@
     markers.forEach((m) => m.remove()); markers = []; pins = {};
     const byCity = {}, unplaced = [];
     agg.sentras.forEach((s) => {
-      const c = CITIES.find((x) => x.name === s.kota);
+      const c = findCity(s.kota, s.nama);
       if (c) (byCity[c.name] = byCity[c.name] || []).push(s); else unplaced.push(s);
     });
     const max = Math.max(1, ...Object.values(byCity).map((a) => a.reduce((x, s) => x + s.kelolaan, 0)));
@@ -252,7 +260,7 @@
       const size = Math.round(32 + 24 * Math.sqrt(v / max));
       const ic = L.divIcon({ className: "pin-wrap", html: `<div class="pin">${list.length}</div>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
       const m = L.marker([c.lat, c.lng], { icon: ic, riseOnHover: true }).addTo(map);
-      m.bindTooltip(`<b>${esc(name)}</b> · ${fmtRp(v)}`, { direction: "top", offset: [0, -size / 2] });
+      m.bindTooltip(`<b>${esc(name)}</b> · ${fmtNum(v)}`, { direction: "top", offset: [0, -size / 2] });
       m.on("click", () => selectCity(name));
       markers.push(m);
       setTimeout(() => { pins[name] = m.getElement() && m.getElement().querySelector(".pin"); if (name === activeCity && pins[name]) pins[name].classList.add("active"); }, 0);
@@ -273,7 +281,7 @@
   }
   function drawKpis() {
     const t = agg.totals;
-    countUp($("#kKel"), t.kelolaan, (v) => fmtRp(v, true));
+    countUp($("#kKel"), t.kelolaan, (v) => fmtNum(v));
     countUp($("#kBank"), t.banks, fmtNum);
     countUp($("#kSentra"), t.sentra, fmtNum);
     countUp($("#kPeg"), t.pegawai, fmtNum);
@@ -282,18 +290,18 @@
     countUp($("#kMb"), t.mobil, fmtNum);
     countUp($("#hSentra"), t.sentra, fmtNum);
     countUp($("#hBank"), t.banks, fmtNum);
-    countUp($("#hKel"), t.kelolaan, (v) => fmtRp(v));
-    $("#kKelSub").textContent = t.sentra ? `Rata-rata ${fmtRp(t.kelolaan / t.sentra)} per sentra` : "";
+    countUp($("#hKel"), t.kelolaan, (v) => fmtNum(v));
+    $("#kKelSub").textContent = t.sentra ? `Rata-rata ${fmtNum(t.kelolaan / t.sentra)} per sentra` : "";
     $("#kBankSub").textContent = `bank unik · ${fmtNum(t.relasi)} relasi sentra–bank`;
     $("#kSentraSub").textContent = "tersebar di 10 region";
-    $("#kPegSub").textContent = t.pegawai ? `Rasio nasional ${fmtRp(t.kelolaan / t.pegawai)} per pegawai` : "";
+    $("#kPegSub").innerHTML = t.pegawai ? `Rasio nasional ${fmtRasio(t.kelolaan, t.pegawai)}` : "";
 
     const top = agg.byCou[0];
     const rg = Object.entries(agg.byRegion).sort((a, b) => b[1] - a[1])[0];
     const dv = Object.entries(agg.byDivisi).sort((a, b) => b[1] - a[1])[0];
     const items = [
-      ["trend", "gold", "COU kelolaan tertinggi", top ? `${esc(top.nama)} · ${fmtRp(top.kelolaan)}` : "–"],
-      ["map", "blue", "Region dengan kelolaan terbesar", rg && rg[1] ? `Region ${rg[0]} · ${fmtRp(rg[1])}` : "–"],
+      ["trend", "gold", "COU kelolaan tertinggi", top ? `${esc(top.nama)} · ${fmtNum(top.kelolaan)}` : "–"],
+      ["map", "blue", "Region dengan kelolaan terbesar", rg && rg[1] ? `Region ${rg[0]} · ${fmtNum(rg[1])}` : "–"],
       ["layers", "teal", "Divisi dominan", dv && dv[1] && t.kelolaan ? `${esc(dv[0])} · ${Math.round(dv[1] / t.kelolaan * 100)}% dari total` : "–"]
     ];
     $("#insights").innerHTML = items.map((i) => `<div class="insight"><span class="ico ${i[1]}">${icon(i[0])}</span><div><small>${i[2]}</small><b>${i[3]}</b></div></div>`).join("");
@@ -319,7 +327,7 @@
       data: { labels: ["Opr 1", "Opr 2"], datasets: [{ data: dv, backgroundColor: ["#2748d8", "#e9b95a"], borderColor: "#fff", borderWidth: 6, hoverOffset: 10 }] },
       options: { maintainAspectRatio: false, cutout: "68%", plugins: {
         legend: { position: "bottom", labels: { usePointStyle: true, padding: 20, color: "#3f4b6b", font: { weight: "600" } } },
-        tooltip: { ...tip, callbacks: { label: (c) => ` ${c.label}: ${fmtRp(c.parsed)} (${(c.parsed / dTot * 100).toFixed(1)}%)` } } } }
+        tooltip: { ...tip, callbacks: { label: (c) => ` ${c.label}: ${fmtNum(c.parsed)} (${(c.parsed / dTot * 100).toFixed(1)}%)` } } } }
     });
 
     const rg = Object.keys(agg.byRegion).map(Number).sort((a, b) => a - b);
@@ -327,8 +335,8 @@
       type: "bar",
       data: { labels: rg.map((r) => "R" + r), datasets: [{ data: rg.map((r) => agg.byRegion[r]), backgroundColor: grad("39,72,216"), borderRadius: 9, borderSkipped: false, maxBarThickness: 38 }] },
       options: { maintainAspectRatio: false, plugins: { legend: { display: false },
-        tooltip: { ...tip, callbacks: { title: (i) => "Region " + rg[i[0].dataIndex], label: (c) => fmtRp(c.parsed.y, true) } } },
-        scales: { y: { beginAtZero: true, ticks: { callback: (v) => fmtRp(v) }, grid }, x: { grid: { display: false } } } }
+        tooltip: { ...tip, callbacks: { title: (i) => "Region " + rg[i[0].dataIndex], label: (c) => fmtNum(c.parsed.y, true) } } },
+        scales: { y: { beginAtZero: true, ticks: { callback: (v) => fmtNum(v) }, grid }, x: { grid: { display: false } } } }
     });
 
     const cou = agg.byCou;
@@ -337,8 +345,8 @@
       type: "bar",
       data: { labels: cou.map((s) => s.nama), datasets: [{ data: cou.map((s) => s.kelolaan), backgroundColor: grad("14,159,148", true), borderRadius: 9, borderSkipped: false, maxBarThickness: 24 }] },
       options: { indexAxis: "y", maintainAspectRatio: false, plugins: { legend: { display: false },
-        tooltip: { ...tip, callbacks: { label: (c) => fmtRp(c.parsed.x, true) } } },
-        scales: { x: { beginAtZero: true, ticks: { callback: (v) => fmtRp(v) }, grid }, y: { grid: { display: false } } } }
+        tooltip: { ...tip, callbacks: { label: (c) => fmtNum(c.parsed.x, true) } } },
+        scales: { x: { beginAtZero: true, ticks: { callback: (v) => fmtNum(v) }, grid }, y: { grid: { display: false } } } }
     });
   }
 
@@ -353,7 +361,8 @@
     const btn = $("#refresh"); btn.disabled = true;
     try { const { raw, demo } = await A.loadData(); agg = A.aggregate(raw); setStatus(demo); }
     catch (e) { A.toast("Gagal memuat Google Sheets: " + e.message + ". Menampilkan data demo.", "error"); agg = A.aggregate(A.seedRaw()); setStatus(true, true); }
-    drawMap(); drawKpis(); drawCharts(); btn.disabled = false;
+    try { drawMap(); } catch (e) { console.error("drawMap:", e); }
+    drawKpis(); drawCharts(); btn.disabled = false;
   }
   $("#refresh").addEventListener("click", refresh);
   emptyPanel(); refresh();
