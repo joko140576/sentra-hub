@@ -36,7 +36,7 @@ function doGet(e) {
     return json_({
       ok: true,
       sentra: readSheet_('Sentra'),
-      kelolaan: readSheet_('Kelolaan'),
+      kelolaan: readKelolaan_(),
       personil: readSheet_('Personil'),
       infrastruktur: readSheet_('Infrastruktur'),
       ts: new Date().toISOString()
@@ -90,18 +90,91 @@ function saveSubmission_(b) {
   if (found) {
     id = found.id; updated = true;
     const ids = shS.getRange(1, 1, shS.getLastRow(), 1).getValues().map(function (r) { return r[0]; });
-    shS.getRange(ids.indexOf(id) + 1, 1, 1, 6).setValues([[id, nama, s.divisi, region, kota, now]]);
+    shS.getRange(ids.indexOf(id) + 1, 1, 1, 6).setValues([[id, nama, s.divisi, 'Region ' + region, kota, now]]);
   } else {
     const max = rows.reduce(function (m, r) { return Math.max(m, parseInt(String(r.id).replace(/\D/g, ''), 10) || 0); }, 0);
     id = 'S' + ('0' + (max + 1)).slice(-2);
     if (max + 1 > 99) id = 'S' + (max + 1);
-    shS.appendRow([id, nama, s.divisi, region, kota, now]);
+    shS.appendRow([id, nama, s.divisi, 'Region ' + region, kota, now]);
   }
 
-  replaceRows_('Kelolaan', id, kel.map(function (r) { return [id, nama, r.bank, r.bisnis, r.jml]; }));
+  writeKelolaanWide_(id, nama, kel);
   replaceRows_('Personil', id, [[id, nama].concat(pers).concat([totalPeg])]);
   replaceRows_('Infrastruktur', id, [[id, nama, n(inf.mesin_hitung), n(inf.mesin_sortir), n(inf.mobil_cr_flm)]]);
   return { id: id, updated: updated };
+}
+
+
+/* ---------------- KELOLAAN FORMAT HORIZONTAL ----------------
+   Sheet "Kelolaan": kolom A = id sentra, kolom B = nama sentra,
+   kolom C dst (sampai AL atau lebih) = nama bank di baris 1,
+   isi sel = jumlah kelolaan sentra tsb untuk bank tsb.
+   Dikonversi ke format "panjang" yang dipakai website. */
+function toNum_(v) {
+  if (typeof v === 'number') return isFinite(v) ? v : 0;
+  var t = String(v == null ? '' : v).replace(/[^0-9.,\-]/g, '');
+  if (!t) return 0;
+  if (t.indexOf('.') >= 0 && t.indexOf(',') >= 0) t = t.replace(/\./g, '').replace(',', '.');
+  else if ((t.match(/\./g) || []).length > 1) t = t.replace(/\./g, '');
+  else if (/^-?\d{1,3}(\.\d{3})+$/.test(t)) t = t.replace(/\./g, '');
+  else if (t.indexOf(',') >= 0) t = /^-?\d{1,3}(,\d{3})+$/.test(t) ? t.replace(/,/g, '') : t.replace(',', '.');
+  var n = Number(t);
+  return isFinite(n) ? n : 0;
+}
+function normName_(v) { return String(v == null ? '' : v).trim().toLowerCase().replace(/\s+/g, ' ').replace(/^cou\s+/, ''); }
+
+function readKelolaan_() {
+  const sh = sheet_('Kelolaan');
+  const v = sh.getDataRange().getValues();
+  if (v.length < 2) return [];
+  const h = v[0].map(function (x) { return String(x).trim(); });
+  // format lama (panjang): ada kolom nama_bank
+  if (h.map(function (x) { return x.toLowerCase(); }).indexOf('nama_bank') >= 0) return readSheet_('Kelolaan');
+
+  const sentra = readSheet_('Sentra'), byId = {}, byName = {};
+  sentra.forEach(function (s) { byId[String(s.id).trim().toUpperCase()] = s; byName[normName_(s.nama_sentra)] = s; });
+  const out = [];
+  v.slice(1).forEach(function (r) {
+    const a = String(r[0] == null ? '' : r[0]).trim(), b = String(r[1] == null ? '' : r[1]).trim();
+    if (!a && !b) return;
+    const s = byId[a.toUpperCase()] || byName[normName_(a)] || byName[normName_(b)];
+    if (!s) return;
+    for (var c = 2; c < h.length; c++) {
+      if (!h[c]) continue;
+      const val = toNum_(r[c]);
+      if (val > 0) out.push({ id_sentra: s.id, nama_sentra: s.nama_sentra, nama_bank: h[c], bisnis: '-', jumlah_kelolaan: val });
+    }
+  });
+  return out;
+}
+
+function writeKelolaanWide_(id, nama, kel) {
+  const sh = sheet_('Kelolaan');
+  if (sh.getLastRow() === 0 || sh.getLastColumn() < 2) sh.getRange(1, 1, 1, 2).setValues([['id_sentra', 'nama_sentra']]);
+  var lastCol = Math.max(2, sh.getLastColumn());
+  var head = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(function (x) { return String(x).trim(); });
+  const colOf = {};
+  head.forEach(function (x, i) { if (i >= 2 && x) colOf[x.toLowerCase()] = i; });
+  const sums = {};
+  kel.forEach(function (r) {
+    const k = r.bank.toLowerCase();
+    if (!(k in colOf)) { head.push(r.bank); colOf[k] = head.length - 1; sh.getRange(1, head.length).setValue(r.bank); }
+    sums[k] = (sums[k] || 0) + r.jml;
+  });
+  const width = head.length, last = sh.getLastRow();
+  var rowIdx = -1;
+  if (last > 1) {
+    const ab = sh.getRange(2, 1, last - 1, 2).getValues();
+    for (var i = 0; i < ab.length; i++) {
+      if (String(ab[i][0]).trim().toUpperCase() === String(id).toUpperCase() || normName_(ab[i][1]) === normName_(nama)) { rowIdx = i + 2; break; }
+    }
+  }
+  if (rowIdx < 0) rowIdx = Math.max(last, 1) + 1;
+  const row = [];
+  for (var c = 0; c < width; c++) row.push('');
+  row[0] = id; row[1] = nama;
+  Object.keys(sums).forEach(function (k) { row[colOf[k]] = sums[k]; });
+  sh.getRange(rowIdx, 1, 1, width).setValues([row]);
 }
 
 /* ---------------- HELPER ---------------- */
@@ -144,7 +217,7 @@ function replaceRows_(name, id, newRows) {
 }
 
 /* ---------------- DATA DUMMY ---------------- */
-// kelolaan dalam MILIAR rupiah; personil = [driver, cust.restock, cust.FLM, cust.driver, admin, manager, asmen]; infra = [mesin hitung, mesin sortir, mobil CR FLM]
+// kelolaan = JUMLAH (angka biasa, bukan Rp); personil = [driver, cust.restock, cust.FLM, cust.driver, admin, manager, asmen]; infra = [mesin hitung, mesin sortir, mobil CR FLM]
 const SEED = /*SEED_START*/[
 {"nama":"COU Jakarta Pusat","divisi":"Opr 1","region":1,"kota":"Jakarta","banks":[["BCA","CR & FLM",120],["Mandiri","CIT",95],["BNI","SLM",60],["BRI","CR & FLM",80],["CIMB Niaga","CIT",40]],"personil":[28,14,8,6,5,3,2],"infra":[22,12,26]},
 {"nama":"COU Jakarta Selatan","divisi":"Opr 1","region":1,"kota":"Jakarta","banks":[["BCA","CIT",70],["Permata","CR & FLM",35],["Danamon","SLM",28],["OCBC","CR & FLM",30]],"personil":[18,9,5,4,3,2,1],"infra":[14,8,17]},
@@ -162,6 +235,8 @@ const SEED = /*SEED_START*/[
 
 /** Jalankan SEKALI dari editor untuk mengisi spreadsheet dengan data dummy (data lama dikosongkan). */
 function seedDummy() {
+  const ui = SpreadsheetApp.getUi();
+  if (ui.alert('PERINGATAN', 'Ini akan MENGHAPUS data pada sheet Sentra, Kelolaan, Personil, Infrastruktur dan menggantinya dengan data dummy. Lanjutkan?', ui.ButtonSet.YES_NO) !== ui.Button.YES) return;
   Object.keys(SHEETS).forEach(function (name) {
     const sh = sheet_(name), last = sh.getLastRow();
     if (last > 1) sh.getRange(2, 1, last - 1, SHEETS[name].length).clearContent();
@@ -171,7 +246,7 @@ function seedDummy() {
   SEED.forEach(function (s, i) {
     const id = 'S' + ('0' + (i + 1)).slice(-2);
     S.push([id, s.nama, s.divisi, s.region, s.kota, now]);
-    s.banks.forEach(function (b) { K.push([id, s.nama, b[0], b[1], b[2] * 1e9]); });
+    s.banks.forEach(function (b) { K.push([id, s.nama, b[0], b[1], b[2]]); });
     const tot = s.personil.reduce(function (a, c) { return a + c; }, 0);
     P.push([id, s.nama].concat(s.personil).concat([tot]));
     I.push([id, s.nama, s.infra[0], s.infra[1], s.infra[2]]);
