@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentra Hub – Edit Data</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2316277a'/%3E%3Cstop offset='1' stop-color='%232748d8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-size='34' font-weight='800' text-anchor='middle' fill='%23ffe3a1' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-in">
+    <a class="brand" href="index.html#top">
+      <div class="brand-mark"><svg class="ic"><use href="#i-bank"/></svg></div>
+      <div class="t"><span class="t">SENTRA HUB</span><small>Cash Operations</small></div>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#peta"><svg class="ic"><use href="#i-map"/></svg><span class="lbl">Peta Sentra</span></a>
+      <a href="index.html#dashboard"><svg class="ic"><use href="#i-chart"/></svg><span class="lbl">Dashboard</span></a>
+      <div class="nav-dd active">
+        <button type="button" class="nav-dd-btn" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-edit"/></svg><span class="lbl">Edit</span><svg class="ic caret"><use href="#i-chev"/></svg></button>
+        <div class="nav-dd-menu" role="menu">
+          <a href="edit.html#kelolaan" role="menuitem" data-edit="kelolaan"><svg class="ic"><use href="#i-bank"/></svg><span class="lbl">Edit Kelolaan</span></a>
+          <a href="edit.html#personil" role="menuitem" data-edit="personil"><svg class="ic"><use href="#i-users"/></svg><span class="lbl">Edit Personil</span></a>
+          <a href="edit.html#infrastruktur" role="menuitem" data-edit="infrastruktur"><svg class="ic"><use href="#i-truck"/></svg><span class="lbl">Edit Infrastruktur</span></a>
+        </div>
+      </div>
+      <a href="form.html" class="cta"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Input Data</span></a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="edit-head">
+    <div>
+      <span class="eyebrow"><svg class="ic"><use href="#i-edit"/></svg> Edit Data</span>
+      <h2 class="title" id="pageTitle">Edit Kelolaan</h2>
+      <p class="lead-dark" id="pageDesc">Ubah, tambah, atau hapus jumlah kelolaan per bank untuk setiap sentra. Perubahan langsung tersimpan ke Google Sheets.</p>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <span class="chip" id="status"><span class="dot demo"></span> Memuat…</span>
+      <button class="btn btn-sm" id="refresh" type="button"><svg class="ic"><use href="#i-refresh"/></svg> Muat ulang</button>
+    </div>
+  </div>
+
+  <div class="edit-tabs" id="tabs">
+    <a href="#kelolaan" data-tab="kelolaan"><svg class="ic"><use href="#i-bank"/></svg> Kelolaan</a>
+    <a href="#personil" data-tab="personil"><svg class="ic"><use href="#i-users"/></svg> Personil</a>
+    <a href="#infrastruktur" data-tab="infrastruktur"><svg class="ic"><use href="#i-truck"/></svg> Infrastruktur</a>
+  </div>
+
+  <!-- ===== TAB KELOLAAN ===== -->
+  <section id="tab-kelolaan">
+    <div class="toolbar">
+      <div class="search"><svg class="ic"><use href="#i-search"/></svg><input id="q" type="search" placeholder="Cari sentra, kota, atau bank…" autocomplete="off"></div>
+      <span class="chip" id="count"></span>
+    </div>
+    <div class="card tbl-card">
+      <div class="tbl-wrap">
+        <table class="dt">
+          <thead><tr>
+            <th>ID</th><th>Nama Sentra</th><th>Divisi</th><th>Region</th>
+            <th class="num">Jumlah Bank</th><th class="num">Total Kelolaan</th><th>Bank</th><th class="td-act">Aksi</th>
+          </tr></thead>
+          <tbody id="tbody"><tr><td colspan="8" class="empty-row">Memuat data…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note">Kelolaan tersimpan per bank (kolom bank pada sheet <b>Kelolaan</b>). Klik <b>Edit</b> untuk mengubah angka tiap bank, menambah bank baru, atau menghapus bank tertentu. Tombol <b>Hapus</b> mengosongkan seluruh kelolaan sentra tersebut (data sentra, personil, dan infrastruktur tidak ikut terhapus).</p>
+  </section>
+
+  <!-- ===== TAB PERSONIL ===== -->
+  <section id="tab-personil" hidden>
+    <div class="toolbar">
+      <div class="search"><svg class="ic"><use href="#i-search"/></svg><input id="qp" type="search" placeholder="Cari sentra, kota, atau divisi…" autocomplete="off"></div>
+      <span class="chip" id="pcount"></span>
+    </div>
+    <div class="card tbl-card">
+      <div class="tbl-wrap">
+        <table class="dt">
+          <thead><tr>
+            <th>ID</th><th>Nama Sentra</th><th>Divisi</th><th>Region</th>
+            <th class="num">Driver</th><th class="num">Cust. Restock</th><th class="num">Cust. FLM</th><th class="num">Cust. Driver</th>
+            <th class="num">Admin</th><th class="num">Manager</th><th class="num">Asmen</th><th class="num">Total</th><th class="td-act">Aksi</th>
+          </tr></thead>
+          <tbody id="ptbody"><tr><td colspan="13" class="empty-row">Memuat data…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note">Personil tersimpan per sentra (sheet <b>Personil</b>). Klik <b>Edit</b> untuk mengubah jumlah pegawai tiap posisi. Tombol <b>Hapus</b> menghapus seluruh data personil sentra tersebut (data sentra, kelolaan, dan infrastruktur tidak ikut terhapus).</p>
+  </section>
+
+  <!-- ===== TAB INFRASTRUKTUR ===== -->
+  <section id="tab-infrastruktur" hidden>
+    <div class="toolbar">
+      <div class="search"><svg class="ic"><use href="#i-search"/></svg><input id="qi" type="search" placeholder="Cari sentra, kota, atau divisi…" autocomplete="off"></div>
+      <span class="chip" id="icount"></span>
+    </div>
+    <div class="card tbl-card">
+      <div class="tbl-wrap">
+        <table class="dt">
+          <thead><tr>
+            <th>ID</th><th>Nama Sentra</th><th>Divisi</th><th>Region</th>
+            <th class="num">Mesin Hitung</th><th class="num">Mesin Sortir</th><th class="num">Mobil CR FLM</th><th class="td-act">Aksi</th>
+          </tr></thead>
+          <tbody id="itbody"><tr><td colspan="8" class="empty-row">Memuat data…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <p class="note">Infrastruktur tersimpan per sentra (sheet <b>Infrastruktur</b>). Klik <b>Edit</b> untuk mengubah jumlah mesin hitung, mesin sortir, dan mobil CR FLM. Tombol <b>Hapus</b> menghapus seluruh data infrastruktur sentra tersebut (data sentra, kelolaan, dan personil tidak ikut terhapus).</p>
+  </section>
+</main>
+
+<!-- ===== MODAL EDIT / TAMBAH KELOLAAN ===== -->
+<div class="modal-bg" id="modal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+    <div class="modal-h">
+      <div><small id="mSmall">Edit Kelolaan</small><h3 id="mTitle">–</h3></div>
+      <button type="button" class="icon-btn" id="mClose" aria-label="Tutup" style="margin-top:0"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-b">
+      <div id="mRows"></div>
+      <button type="button" class="btn btn-blue btn-sm" id="mAdd"><svg class="ic"><use href="#i-plus"/></svg> Tambah Bank</button>
+      <datalist id="dlBank"></datalist>
+    </div>
+    <div class="modal-f">
+      <div class="sum" style="font-size:12px;color:var(--muted);font-weight:600"><b id="mTotal" style="display:block;font-family:'Sora';font-size:17px;color:var(--navy)">0</b>Total kelolaan · <span id="mBankN">0</span> bank</div>
+      <div style="display:flex;gap:10px">
+        <button type="button" class="btn" id="mCancel">Batal</button>
+        <button type="button" class="btn btn-gold" id="mSave"><svg class="ic"><use href="#i-check"/></svg> Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL EDIT / TAMBAH PERSONIL ===== -->
+<div class="modal-bg" id="pmodal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pTitle">
+    <div class="modal-h">
+      <div><small id="pSmall">Edit Personil</small><h3 id="pTitle">–</h3></div>
+      <button type="button" class="icon-btn" id="pClose" aria-label="Tutup" style="margin-top:0"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-b">
+      <div class="grid g2" id="pFields"></div>
+    </div>
+    <div class="modal-f">
+      <div class="sum" style="font-size:12px;color:var(--muted);font-weight:600"><b id="pTotal" style="display:block;font-family:'Sora';font-size:17px;color:var(--navy)">0</b>Total pegawai (poin 1 – 7)</div>
+      <div style="display:flex;gap:10px">
+        <button type="button" class="btn" id="pCancel">Batal</button>
+        <button type="button" class="btn btn-gold" id="pSave"><svg class="ic"><use href="#i-check"/></svg> Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL EDIT / TAMBAH INFRASTRUKTUR ===== -->
+<div class="modal-bg" id="imodal" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="iTitle">
+    <div class="modal-h">
+      <div><small id="iSmall">Edit Infrastruktur</small><h3 id="iTitle">–</h3></div>
+      <button type="button" class="icon-btn" id="iClose" aria-label="Tutup" style="margin-top:0"><svg class="ic"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-b">
+      <div class="grid g2" id="iFields"></div>
+    </div>
+    <div class="modal-f">
+      <div class="sum" style="font-size:12px;color:var(--muted);font-weight:600"><b id="iTotal" style="display:block;font-family:'Sora';font-size:17px;color:var(--navy)">0</b>Total unit (mesin + mobil)</div>
+      <div style="display:flex;gap:10px">
+        <button type="button" class="btn" id="iCancel">Batal</button>
+        <button type="button" class="btn btn-gold" id="iSave"><svg class="ic"><use href="#i-check"/></svg> Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="container">
+    <div class="foot-top">
+      <div>
+        <div class="brand"><div class="brand-mark"><svg class="ic"><use href="#i-bank"/></svg></div><div><span>SENTRA HUB</span><small>Cash Operations</small></div></div>
+        <p>Dashboard terpadu untuk memantau kelolaan, personil, dan infrastruktur seluruh sentra.</p>
+      </div>
+      <div class="foot-links">
+        <a href="index.html#peta"><svg class="ic"><use href="#i-map"/></svg> Peta Sentra</a>
+        <a href="index.html#dashboard"><svg class="ic"><use href="#i-chart"/></svg> Dashboard</a>
+        <a href="form.html"><svg class="ic"><use href="#i-plus"/></svg> Input Data</a>
+      </div>
+    </div>
+    <div class="foot-bot"><span>© <span id="yr"></span> Sentra Hub</span><span>Data bersumber dari Google Sheets via Apps Script</span></div>
+  </div>
+</footer>
+
+<script src="api.js"></script>
+<script>
+(function () {
+  "use strict";
+  const A = window.SentraAPI, { esc, fmtNum, icon } = A;
+  const $ = (s) => document.querySelector(s);
+  $("#yr").textContent = new Date().getFullYear();
+
+  const sid = (v) => String(v == null ? "" : v).trim().toUpperCase();
+  const parseNum = (v) => Number(String(v).replace(/\D/g, "")) || 0;
+  const normKey = (k) => String(k).trim().toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_|_$/g, "");
+  const normRows = (arr) => (arr || []).map((r) => { const o = {}; Object.keys(r).forEach((k) => (o[normKey(k)] = r[k])); if (o.id_sentra === undefined && o.id !== undefined) o.id_sentra = o.id; return o; });
+
+  let rows = [];          // satu baris per sentra: { id, nama, divisi, region, kota, items:[{bank,jml}], total }
+  let bankNames = [];     // untuk autocomplete
+  let editing = null;     // sentra yang sedang diedit di modal
+  let pRows = [];         // satu baris per sentra: { id, nama, divisi, region, kota, has, v:{driver,...}, total }
+  let pEditing = null;    // sentra yang sedang diedit di modal personil
+  const PERS = [["driver", "Jumlah Pegawai Driver"], ["custody_restock", "Jumlah Pegawai Custody Restock"], ["custody_flm", "Jumlah Pegawai Custody-FLM"],
+                ["custody_driver", "Jumlah Pegawai Custody-Driver"], ["admin", "Jumlah Pegawai Admin"], ["manager", "Jumlah Manager"], ["asmen", "Jumlah Asmen"]];
+  const nInt = (v) => Math.max(0, Math.floor(parseNum(v)));
+  let iRows = [];         // satu baris per sentra: { id, nama, divisi, region, kota, has, v:{mesin_hitung,...} }
+  let iEditing = null;    // sentra yang sedang diedit di modal infrastruktur
+  const INFRA = [["mesin_hitung", "Jumlah Mesin Hitung"], ["mesin_sortir", "Jumlah Mesin Sortir"], ["mobil_cr_flm", "Jumlah Mobil CR FLM"]];
+
+  /* ---------- tab / hash ---------- */
+  const TABS = { kelolaan: ["Edit Kelolaan", "Ubah, tambah, atau hapus jumlah kelolaan per bank untuk setiap sentra. Perubahan langsung tersimpan ke Google Sheets."],
+                 personil: ["Edit Personil", "Ubah jumlah pegawai per posisi untuk setiap sentra."],
+                 infrastruktur: ["Edit Infrastruktur", "Ubah jumlah mesin hitung, mesin sortir, dan mobil CR FLM tiap sentra."] };
+  function route() {
+    const t = TABS[location.hash.slice(1)] ? location.hash.slice(1) : "kelolaan";
+    $("#pageTitle").textContent = TABS[t][0]; $("#pageDesc").textContent = TABS[t][1];
+    document.querySelectorAll("[data-tab]").forEach((a) => a.classList.toggle("active", a.dataset.tab === t));
+    document.querySelectorAll("[data-edit]").forEach((a) => a.classList.toggle("active", a.dataset.edit === t));
+    $("#tab-kelolaan").hidden = t !== "kelolaan";
+    $("#tab-personil").hidden = t !== "personil";
+    $("#tab-infrastruktur").hidden = t !== "infrastruktur";
+    document.title = "Sentra Hub – " + TABS[t][0];
+  }
+  window.addEventListener("hashchange", route); route();
+
+  /* ---------- muat & susun data ---------- */
+  function build(raw) {
+    const sentra = normRows(raw.sentra), kel = normRows(raw.kelolaan);
+    const byId = {};
+    kel.forEach((r) => { const k = sid(r.id_sentra); (byId[k] = byId[k] || []).push(r); });
+    const names = new Map();
+    rows = sentra.filter((s) => s.id || s.nama_sentra).map((s) => {
+      const merged = new Map();
+      (byId[sid(s.id)] || []).forEach((r) => {
+        const bank = String(r.nama_bank || "").trim(); if (!bank) return;
+        const k = bank.toLowerCase(), v = Number(r.jumlah_kelolaan) || 0;
+        names.set(k, names.get(k) || bank);
+        merged.set(k, { bank: (merged.get(k) || { bank }).bank, jml: ((merged.get(k) || {}).jml || 0) + v });
+      });
+      const items = [...merged.values()].filter((x) => x.jml > 0);
+      return { id: s.id, nama: s.nama_sentra, divisi: s.divisi, region: parseInt(String(s.region == null ? "" : s.region).replace(/\D/g, ""), 10) || "", kota: s.kota || "",
+               items, total: items.reduce((a, x) => a + x.jml, 0) };
+    });
+    (raw.banks || []).forEach((b) => { const k = String(b).trim().toLowerCase(); if (k && !names.has(k)) names.set(k, String(b).trim()); });
+    // personil: 1 baris per sentra (sheet memakai kolom "driver"; data lama memakai "kasir")
+    const per = normRows(raw.personil), pById = {}, pByName = {};
+    per.forEach((r) => { pById[sid(r.id_sentra)] = pById[sid(r.id_sentra)] || r; const nk = String(r.nama_sentra || "").trim().toLowerCase(); if (nk) pByName[nk] = pByName[nk] || r; });
+    pRows = sentra.filter((s) => s.id || s.nama_sentra).map((s) => {
+      const rec = pById[sid(s.id)] || pByName[String(s.nama_sentra || "").trim().toLowerCase()] || null;
+      const v = {};
+      PERS.forEach(([k]) => { const raw0 = rec ? ((k === "driver" && (rec.driver === undefined || rec.driver === "")) ? rec.kasir : rec[k]) : 0; v[k] = nInt(raw0); });
+      return { id: s.id, nama: s.nama_sentra, divisi: s.divisi, region: parseInt(String(s.region == null ? "" : s.region).replace(/\D/g, ""), 10) || "", kota: s.kota || "",
+               has: !!rec, v, total: PERS.reduce((a, [k]) => a + v[k], 0) };
+    });
+    const inf = normRows(raw.infrastruktur), iById = {}, iByName = {};
+    inf.forEach((r) => { iById[sid(r.id_sentra)] = iById[sid(r.id_sentra)] || r; const nk = String(r.nama_sentra || "").trim().toLowerCase(); if (nk) iByName[nk] = iByName[nk] || r; });
+    iRows = sentra.filter((s) => s.id || s.nama_sentra).map((s) => {
+      const rec = iById[sid(s.id)] || iByName[String(s.nama_sentra || "").trim().toLowerCase()] || null;
+      const v = {}; INFRA.forEach(([k]) => (v[k] = rec ? nInt(rec[k]) : 0));
+      return { id: s.id, nama: s.nama_sentra, divisi: s.divisi, region: parseInt(String(s.region == null ? "" : s.region).replace(/\D/g, ""), 10) || "", kota: s.kota || "", has: !!rec, v };
+    });
+    bankNames = [...names.values()].sort((a, b) => a.localeCompare(b));
+    $("#dlBank").innerHTML = bankNames.map((b) => `<option value="${esc(b)}">`).join("");
+  }
+
+  function render() {
+    const q = $("#q").value.trim().toLowerCase();
+    const list = rows.filter((r) => !q || [r.id, r.nama, r.kota, r.divisi, ...r.items.map((x) => x.bank)].join(" ").toLowerCase().includes(q));
+    $("#count").textContent = list.length + " dari " + rows.length + " sentra";
+    $("#tbody").innerHTML = list.length ? list.map((r) => {
+      const has = r.items.length > 0;
+      const chips = r.items.slice(0, 4).map((x) => `<span class="chip">${esc(x.bank)}</span>`).join("") + (r.items.length > 4 ? `<span class="chip blue">+${r.items.length - 4}</span>` : "");
+      return `<tr>
+        <td>${esc(r.id)}</td>
+        <td><b>${esc(r.nama)}</b><div class="hint">${esc(r.kota)}</div></td>
+        <td>${esc(r.divisi)}</td><td>${r.region ? "Region " + r.region : "–"}</td>
+        <td class="num">${fmtNum(r.items.length)}</td><td class="num"><b>${fmtNum(r.total)}</b></td>
+        <td><div class="mini-chips">${has ? chips : '<span class="hint">belum ada data</span>'}</div></td>
+        <td class="td-act">
+          <button type="button" class="btn-edit" data-act="edit" data-id="${esc(r.id)}">${icon(has ? "edit" : "plus")} ${has ? "Edit" : "Tambah"}</button>
+          <button type="button" class="btn-del" data-act="del" data-id="${esc(r.id)}" ${has ? "" : "disabled"}>${icon("trash")} Hapus</button>
+        </td></tr>`;
+    }).join("") : `<tr><td colspan="8" class="empty-row">Tidak ada sentra yang cocok.</td></tr>`;
+  }
+
+  function renderP() {
+    const q = $("#qp").value.trim().toLowerCase();
+    const list = pRows.filter((r) => !q || [r.id, r.nama, r.kota, r.divisi].join(" ").toLowerCase().includes(q));
+    $("#pcount").textContent = list.length + " dari " + pRows.length + " sentra";
+    $("#ptbody").innerHTML = list.length ? list.map((r) => `<tr>
+        <td>${esc(r.id)}</td>
+        <td><b>${esc(r.nama)}</b><div class="hint">${esc(r.kota)}</div></td>
+        <td>${esc(r.divisi)}</td><td>${r.region ? "Region " + r.region : "–"}</td>
+        ${r.has ? PERS.map(([k]) => `<td class="num">${fmtNum(r.v[k])}</td>`).join("") : `<td colspan="7" class="hint" style="text-align:center">belum ada data</td>`}
+        <td class="num"><b>${fmtNum(r.total)}</b></td>
+        <td class="td-act">
+          <button type="button" class="btn-edit" data-pact="edit" data-id="${esc(r.id)}">${icon(r.has ? "edit" : "plus")} ${r.has ? "Edit" : "Tambah"}</button>
+          <button type="button" class="btn-del" data-pact="del" data-id="${esc(r.id)}" ${r.has ? "" : "disabled"}>${icon("trash")} Hapus</button>
+        </td></tr>`).join("") : `<tr><td colspan="13" class="empty-row">Tidak ada sentra yang cocok.</td></tr>`;
+  }
+
+  function renderI() {
+    const q = $("#qi").value.trim().toLowerCase();
+    const list = iRows.filter((r) => !q || [r.id, r.nama, r.kota, r.divisi].join(" ").toLowerCase().includes(q));
+    $("#icount").textContent = list.length + " dari " + iRows.length + " sentra";
+    $("#itbody").innerHTML = list.length ? list.map((r) => `<tr>
+        <td>${esc(r.id)}</td>
+        <td><b>${esc(r.nama)}</b><div class="hint">${esc(r.kota)}</div></td>
+        <td>${esc(r.divisi)}</td><td>${r.region ? "Region " + r.region : "–"}</td>
+        ${r.has ? INFRA.map(([k]) => `<td class="num">${fmtNum(r.v[k])}</td>`).join("") : `<td colspan="3" class="hint" style="text-align:center">belum ada data</td>`}
+        <td class="td-act">
+          <button type="button" class="btn-edit" data-iact="edit" data-id="${esc(r.id)}">${icon(r.has ? "edit" : "plus")} ${r.has ? "Edit" : "Tambah"}</button>
+          <button type="button" class="btn-del" data-iact="del" data-id="${esc(r.id)}" ${r.has ? "" : "disabled"}>${icon("trash")} Hapus</button>
+        </td></tr>`).join("") : `<tr><td colspan="8" class="empty-row">Tidak ada sentra yang cocok.</td></tr>`;
+  }
+
+  function setStatus(demo, failed) {
+    const hh = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    $("#status").innerHTML = demo
+      ? `<span class="dot demo"></span> ${failed ? "Gagal terhubung" : "Mode demo (GAS_URL kosong)"}`
+      : `<span class="dot"></span> Live · Google Sheets · ${hh}`;
+  }
+  async function load() {
+    const btn = $("#refresh"); btn.disabled = true;
+    try { const { raw, demo } = await A.loadData(); build(raw); setStatus(demo); }
+    catch (e) { A.toast("Gagal memuat Google Sheets: " + e.message, "error"); setStatus(true, true); $("#tbody").innerHTML = `<tr><td colspan="8" class="empty-row">Data tidak dapat dimuat. Coba klik “Muat ulang”.</td></tr>`; $("#ptbody").innerHTML = `<tr><td colspan="13" class="empty-row">Data tidak dapat dimuat. Coba klik “Muat ulang”.</td></tr>`; $("#itbody").innerHTML = `<tr><td colspan="8" class="empty-row">Data tidak dapat dimuat. Coba klik “Muat ulang”.</td></tr>`; }
+    render(); renderP(); renderI(); btn.disabled = false;
+  }
+  $("#refresh").addEventListener("click", load);
+  $("#q").addEventListener("input", render);
+  $("#qp").addEventListener("input", renderP);
+  $("#qi").addEventListener("input", renderI);
+
+  /* ---------- modal ---------- */
+  function mRow(d) {
+    d = d || {};
+    const el = document.createElement("div");
+    el.className = "mrow";
+    el.innerHTML = `
+      <div class="field"><label>Nama Bank</label><input class="m-bank" list="dlBank" placeholder="mis. BCA" maxlength="60" value="${esc(d.bank || "")}"></div>
+      <div class="field"><label>Jumlah Kelolaan</label><input class="m-jml" inputmode="numeric" placeholder="0" value="${d.jml ? fmtNum(d.jml) : ""}"></div>
+      <button type="button" class="icon-btn m-del" title="Hapus bank ini" aria-label="Hapus bank ini">${icon("x")}</button>`;
+    $("#mRows").appendChild(el);
+    return el;
+  }
+  function mRead() {
+    return [...document.querySelectorAll("#mRows .mrow")].map((r) => ({ el: r, bank: r.querySelector(".m-bank").value.trim().replace(/\s+/g, " "), jml: parseNum(r.querySelector(".m-jml").value) }));
+  }
+  function mRecalc() {
+    const rs = mRead().filter((r) => r.bank || r.jml);
+    $("#mTotal").textContent = fmtNum(rs.reduce((a, r) => a + r.jml, 0));
+    $("#mBankN").textContent = new Set(rs.filter((r) => r.bank).map((r) => r.bank.toLowerCase())).size;
+  }
+  function openModal(r) {
+    editing = r;
+    $("#mSmall").textContent = r.items.length ? "Edit Kelolaan" : "Tambah Kelolaan";
+    $("#mTitle").textContent = r.nama + " (" + r.id + ")";
+    $("#mRows").innerHTML = "";
+    (r.items.length ? r.items : [{}]).forEach(mRow);
+    mRecalc();
+    $("#modal").classList.add("open"); $("#modal").setAttribute("aria-hidden", "false");
+    const f = $("#mRows .m-jml"); if (f && r.items.length) f.focus(); else $("#mRows .m-bank").focus();
+  }
+  function closeModal() { editing = null; $("#modal").classList.remove("open"); $("#modal").setAttribute("aria-hidden", "true"); }
+
+  $("#mAdd").addEventListener("click", () => { mRow().querySelector(".m-bank").focus(); mRecalc(); });
+  $("#mRows").addEventListener("click", (e) => {
+    if (!e.target.closest(".m-del")) return;
+    const row = e.target.closest(".mrow");
+    if ($("#mRows").children.length === 1) row.querySelectorAll("input").forEach((i) => (i.value = "")); else row.remove();
+    mRecalc();
+  });
+  $("#mRows").addEventListener("input", (e) => {
+    if (e.target.classList.contains("m-jml")) { const n = parseNum(e.target.value); e.target.value = n ? fmtNum(n) : ""; }
+    mRecalc();
+  });
+  $("#mClose").addEventListener("click", closeModal);
+  $("#mCancel").addEventListener("click", closeModal);
+  $("#modal").addEventListener("mousedown", (e) => { if (e.target === $("#modal")) closeModal(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") { if (editing) closeModal(); if (pEditing) closePModal(); if (iEditing) closeIModal(); } });
+
+  const saveHtml = `${icon("check")} Simpan`;
+  $("#mSave").addEventListener("click", async () => {
+    if (!editing) return;
+    const rs = mRead().filter((r) => r.bank || r.jml);
+    document.querySelectorAll("#mRows .mrow").forEach((r) => (r.style.outline = ""));
+    const bad = rs.find((r) => !r.bank || r.jml <= 0);
+    if (bad) { bad.el.style.outline = "2px solid var(--danger)"; A.toast("Setiap baris wajib berisi nama bank dan jumlah kelolaan > 0.", "error"); return; }
+    if (!rs.length) { A.toast("Isi minimal satu bank. Untuk mengosongkan semua, gunakan tombol Hapus pada tabel.", "error"); return; }
+    const seen = new Set(), dup = rs.find((r) => { const k = r.bank.toLowerCase(); if (seen.has(k)) return true; seen.add(k); return false; });
+    if (dup) { dup.el.style.outline = "2px solid var(--danger)"; A.toast("Bank \"" + dup.bank + "\" diisi dua kali. Gabungkan jadi satu baris.", "error"); return; }
+
+    const btn = $("#mSave"); btn.disabled = true; btn.textContent = "Menyimpan…";
+    try {
+      const res = await A.saveKelolaan(editing.id, rs.map((r) => ({ nama_bank: r.bank, jumlah_kelolaan: r.jml })));
+      A.toast(res.demo ? "Tersimpan (mode demo, di browser ini)." : "Kelolaan " + editing.nama + " berhasil disimpan ✓", "ok");
+      closeModal(); await load();
+    } catch (err) { A.toast("Gagal menyimpan: " + err.message, "error"); }
+    finally { btn.disabled = false; btn.innerHTML = saveHtml; }
+  });
+
+  /* ---------- aksi tabel ---------- */
+  $("#tbody").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-act]"); if (!b) return;
+    const r = rows.find((x) => sid(x.id) === sid(b.dataset.id)); if (!r) return;
+    if (b.dataset.act === "edit") return openModal(r);
+    if (!confirm("Hapus seluruh data kelolaan " + r.nama + " (" + r.items.length + " bank)?\nData sentra, personil, dan infrastruktur tidak ikut terhapus.")) return;
+    b.disabled = true;
+    try {
+      const res = await A.deleteKelolaan(r.id);
+      A.toast(res.demo ? "Terhapus (mode demo)." : "Kelolaan " + r.nama + " dihapus ✓", "ok");
+      await load();
+    } catch (err) { A.toast("Gagal menghapus: " + err.message, "error"); b.disabled = false; }
+  });
+
+  /* ---------- modal personil ---------- */
+  $("#pFields").innerHTML = PERS.map(([k, l], i) =>
+    `<div class="field"><label for="pm_${k}">${i + 1}) ${l}</label><input id="pm_${k}" data-pm="${k}" inputmode="numeric" placeholder="0"></div>`).join("");
+  function pRecalc() { $("#pTotal").textContent = fmtNum(PERS.reduce((a, [k]) => a + nInt($("#pm_" + k).value), 0)); }
+  function openPModal(r) {
+    pEditing = r;
+    $("#pSmall").textContent = r.has ? "Edit Personil" : "Tambah Personil";
+    $("#pTitle").textContent = r.nama + " (" + r.id + ")";
+    PERS.forEach(([k]) => { const i = $("#pm_" + k); i.value = r.v[k] ? fmtNum(r.v[k]) : ""; i.closest(".field").classList.remove("err"); i.style.outline = ""; });
+    pRecalc();
+    $("#pmodal").classList.add("open"); $("#pmodal").setAttribute("aria-hidden", "false");
+    $("#pm_" + PERS[0][0]).focus();
+  }
+  function closePModal() { pEditing = null; $("#pmodal").classList.remove("open"); $("#pmodal").setAttribute("aria-hidden", "true"); }
+  $("#pFields").addEventListener("input", (e) => {
+    if (!e.target.matches("[data-pm]")) return;
+    const n = parseNum(e.target.value); e.target.value = n ? fmtNum(n) : ""; e.target.style.outline = ""; pRecalc();
+  });
+  $("#pClose").addEventListener("click", closePModal);
+  $("#pCancel").addEventListener("click", closePModal);
+  $("#pmodal").addEventListener("mousedown", (e) => { if (e.target === $("#pmodal")) closePModal(); });
+
+  const pSaveHtml = `${icon("check")} Simpan`;
+  $("#pSave").addEventListener("click", async () => {
+    if (!pEditing) return;
+    const vals = {}; PERS.forEach(([k]) => (vals[k] = nInt($("#pm_" + k).value)));
+    if (!PERS.some(([k]) => vals[k] > 0)) { A.toast("Isi minimal satu posisi dengan jumlah > 0. Untuk mengosongkan semua, gunakan tombol Hapus pada tabel.", "error"); return; }
+    const btn = $("#pSave"); btn.disabled = true; btn.textContent = "Menyimpan…";
+    try {
+      const res = await A.savePersonil(pEditing.id, vals);
+      A.toast(res.demo ? "Tersimpan (mode demo, di browser ini)." : "Personil " + pEditing.nama + " berhasil disimpan ✓", "ok");
+      closePModal(); await load();
+    } catch (err) { A.toast("Gagal menyimpan: " + err.message, "error"); }
+    finally { btn.disabled = false; btn.innerHTML = pSaveHtml; }
+  });
+
+  $("#ptbody").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-pact]"); if (!b) return;
+    const r = pRows.find((x) => sid(x.id) === sid(b.dataset.id)); if (!r) return;
+    if (b.dataset.pact === "edit") return openPModal(r);
+    if (!confirm("Hapus seluruh data personil " + r.nama + " (" + fmtNum(r.total) + " pegawai)?\nData sentra, kelolaan, dan infrastruktur tidak ikut terhapus.")) return;
+    b.disabled = true;
+    try {
+      const res = await A.deletePersonil(r.id);
+      A.toast(res.demo ? "Terhapus (mode demo)." : "Personil " + r.nama + " dihapus ✓", "ok");
+      await load();
+    } catch (err) { A.toast("Gagal menghapus: " + err.message, "error"); b.disabled = false; }
+  });
+
+  /* ---------- modal infrastruktur ---------- */
+  $("#iFields").innerHTML = INFRA.map(([k, l], i) =>
+    `<div class="field"><label for="im_${k}">${i + 1}) ${l}</label><input id="im_${k}" data-im="${k}" inputmode="numeric" placeholder="0"></div>`).join("");
+  function iRecalc() { $("#iTotal").textContent = fmtNum(INFRA.reduce((a, [k]) => a + nInt($("#im_" + k).value), 0)); }
+  function openIModal(r) {
+    iEditing = r;
+    $("#iSmall").textContent = r.has ? "Edit Infrastruktur" : "Tambah Infrastruktur";
+    $("#iTitle").textContent = r.nama + " (" + r.id + ")";
+    INFRA.forEach(([k]) => { $("#im_" + k).value = r.v[k] ? fmtNum(r.v[k]) : ""; });
+    iRecalc();
+    $("#imodal").classList.add("open"); $("#imodal").setAttribute("aria-hidden", "false");
+    $("#im_" + INFRA[0][0]).focus();
+  }
+  function closeIModal() { iEditing = null; $("#imodal").classList.remove("open"); $("#imodal").setAttribute("aria-hidden", "true"); }
+  $("#iFields").addEventListener("input", (e) => {
+    if (!e.target.matches("[data-im]")) return;
+    const n = parseNum(e.target.value); e.target.value = n ? fmtNum(n) : ""; iRecalc();
+  });
+  $("#iClose").addEventListener("click", closeIModal);
+  $("#iCancel").addEventListener("click", closeIModal);
+  $("#imodal").addEventListener("mousedown", (e) => { if (e.target === $("#imodal")) closeIModal(); });
+
+  const iSaveHtml = `${icon("check")} Simpan`;
+  $("#iSave").addEventListener("click", async () => {
+    if (!iEditing) return;
+    const vals = {}; INFRA.forEach(([k]) => (vals[k] = nInt($("#im_" + k).value)));
+    if (!INFRA.some(([k]) => vals[k] > 0)) { A.toast("Isi minimal satu unit dengan jumlah > 0. Untuk mengosongkan semua, gunakan tombol Hapus pada tabel.", "error"); return; }
+    const btn = $("#iSave"); btn.disabled = true; btn.textContent = "Menyimpan…";
+    try {
+      const res = await A.saveInfrastruktur(iEditing.id, vals);
+      A.toast(res.demo ? "Tersimpan (mode demo, di browser ini)." : "Infrastruktur " + iEditing.nama + " berhasil disimpan ✓", "ok");
+      closeIModal(); await load();
+    } catch (err) { A.toast("Gagal menyimpan: " + err.message, "error"); }
+    finally { btn.disabled = false; btn.innerHTML = iSaveHtml; }
+  });
+
+  $("#itbody").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-iact]"); if (!b) return;
+    const r = iRows.find((x) => sid(x.id) === sid(b.dataset.id)); if (!r) return;
+    if (b.dataset.iact === "edit") return openIModal(r);
+    if (!confirm("Hapus seluruh data infrastruktur " + r.nama + "?\nData sentra, kelolaan, dan personil tidak ikut terhapus.")) return;
+    b.disabled = true;
+    try {
+      const res = await A.deleteInfrastruktur(r.id);
+      A.toast(res.demo ? "Terhapus (mode demo)." : "Infrastruktur " + r.nama + " dihapus ✓", "ok");
+      await load();
+    } catch (err) { A.toast("Gagal menghapus: " + err.message, "error"); b.disabled = false; }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>
