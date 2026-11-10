@@ -105,7 +105,7 @@
   // Daftar kota memakai key "kota", sedangkan findCity() & index.html membaca "name" dan "lng" -> samakan semuanya
   CITIES.forEach(function (c) { if (!c.name) c.name = c.kota; c.lng = c.long; });
 
-  // ---- Data dummy (kelolaan = JUMLAH (angka biasa, bukan Rp); personil = [driver, custody restock, custody FLM, custody driver, admin, manager, asmen]; infra = [mesin hitung, mesin sortir, mobil CR FLM])
+  // ---- Data dummy (kelolaan = JUMLAH (angka biasa, bukan Rp); personil = [kasir, custody restock, custody FLM, custody driver, admin, manager, asmen]; infra = [mesin hitung, mesin sortir, mobil CR FLM])
   const SEED = /*SEED_START*/[
 {"nama":"COU Jakarta Pusat","divisi":"Opr 1","region":1,"kota":"Jakarta","banks":[["BCA","CR & FLM",120],["Mandiri","CIT",95],["BNI","SLM",60],["BRI","CR & FLM",80],["CIMB Niaga","CIT",40]],"personil":[28,14,8,6,5,3,2],"infra":[22,12,26]},
 {"nama":"COU Jakarta Selatan","divisi":"Opr 1","region":1,"kota":"Jakarta","banks":[["BCA","CIT",70],["Permata","CR & FLM",35],["Danamon","SLM",28],["OCBC","CR & FLM",30]],"personil":[18,9,5,4,3,2,1],"infra":[14,8,17]},
@@ -196,7 +196,7 @@
       raw.sentra.push({ id, nama_sentra: s.nama, divisi: s.divisi, region: s.region, kota: s.kota });
       s.banks.forEach((b) => raw.kelolaan.push({ id_sentra: id, nama_sentra: s.nama, nama_bank: b[0], bisnis: b[1], jumlah_kelolaan: b[2] }));
       const p = s.personil;
-      raw.personil.push({ id_sentra: id, nama_sentra: s.nama, driver: p[0], custody_restock: p[1], custody_flm: p[2], custody_driver: p[3], admin: p[4], manager: p[5], asmen: p[6] });
+      raw.personil.push({ id_sentra: id, nama_sentra: s.nama, kasir: p[0], custody_restock: p[1], custody_flm: p[2], custody_driver: p[3], admin: p[4], manager: p[5], asmen: p[6] });
       raw.infrastruktur.push({ id_sentra: id, nama_sentra: s.nama, mesin_hitung: s.infra[0], mesin_sortir: s.infra[1], mobil_cr_flm: s.infra[2] });
     });
     return raw;
@@ -274,7 +274,7 @@
       });
       relasi += bankSet.size;
       const pers = {
-        driver: num(p.driver), custody_restock: num(p.custody_restock), custody_flm: num(p.custody_flm),
+        kasir: num(p.kasir), custody_restock: num(p.custody_restock), custody_flm: num(p.custody_flm),
         custody_driver: num(p.custody_driver), admin: num(p.admin), manager: num(p.manager), asmen: num(p.asmen)
       };
       let pegawai = Object.values(pers).reduce((a, b) => a + b, 0);
