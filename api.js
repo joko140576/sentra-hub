@@ -9,7 +9,7 @@
   "use strict";
 
   const CONFIG = {
-    GAS_URL: "https://script.google.com/macros/s/AKfycbzQ7xyvv3n_FwfS_ZZOlERcPadUd8gjvbs_o3skXhk3idBH3eC2_uCKpZnXf_9KNVI2/exec"
+    GAS_URL: "https://script.google.com/macros/s/AKfycbz-cQjFfe6xyD6JVhwU9RsxBLiUuoewGLsIS8qQUp_E83IrsyFEg7fCS7HYGrtMTYxV/exec"
   };
 
   // Kota-kota besar yang tampil di peta (field "kota" pada form menentukan titiknya)
@@ -249,6 +249,89 @@
     return { ...j, demo: false };
   }
 
+  // ---------- CRUD Kelolaan (menu Edit > Edit Kelolaan) ----------
+  async function postAction(payload) {
+    // Tanpa header Content-Type => text/plain => tanpa preflight CORS (sama seperti submitData)
+    const res = await fetch(CONFIG.GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const j = await res.json();
+    if (!j.ok) throw new Error(j.error || "Permintaan gagal");
+    return { ...j, demo: false };
+  }
+  // items: [{ nama_bank, jumlah_kelolaan }]  -> menimpa seluruh kelolaan sentra tsb
+  async function saveKelolaan(idSentra, items) {
+    if (!CONFIG.GAS_URL) {
+      const raw = demoLoad(), s = raw.sentra.find((x) => sid(x.id) === sid(idSentra));
+      if (!s) throw new Error("Sentra tidak ditemukan");
+      raw.kelolaan = raw.kelolaan.filter((r) => sid(r.id_sentra) !== sid(idSentra));
+      items.forEach((r) => raw.kelolaan.push({ id_sentra: s.id, nama_sentra: s.nama_sentra, nama_bank: r.nama_bank, bisnis: "-", jumlah_kelolaan: r.jumlah_kelolaan }));
+      demoSave(raw);
+      return { ok: true, demo: true };
+    }
+    return postAction({ action: "kelolaan_save", id_sentra: idSentra, items });
+  }
+  async function deleteKelolaan(idSentra) {
+    if (!CONFIG.GAS_URL) {
+      const raw = demoLoad();
+      raw.kelolaan = raw.kelolaan.filter((r) => sid(r.id_sentra) !== sid(idSentra));
+      demoSave(raw);
+      return { ok: true, demo: true };
+    }
+    return postAction({ action: "kelolaan_delete", id_sentra: idSentra });
+  }
+
+  // ---------- CRUD Personil (menu Edit > Edit Personil) ----------
+  const PERS_KEYS = ["driver", "custody_restock", "custody_flm", "custody_driver", "admin", "manager", "asmen"];
+  // personil: { driver, custody_restock, custody_flm, custody_driver, admin, manager, asmen } -> menimpa data personil sentra tsb
+  async function savePersonil(idSentra, personil) {
+    if (!CONFIG.GAS_URL) {
+      const raw = demoLoad(), s = raw.sentra.find((x) => sid(x.id) === sid(idSentra));
+      if (!s) throw new Error("Sentra tidak ditemukan");
+      raw.personil = (raw.personil || []).filter((r) => sid(r.id_sentra) !== sid(idSentra));
+      const row = { id_sentra: s.id, nama_sentra: s.nama_sentra };
+      let tot = 0; PERS_KEYS.forEach((k) => { row[k] = Number(personil[k]) || 0; tot += row[k]; });
+      row.total_pegawai = tot;
+      raw.personil.push(row);
+      demoSave(raw);
+      return { ok: true, demo: true };
+    }
+    return postAction({ action: "personil_save", id_sentra: idSentra, personil });
+  }
+  async function deletePersonil(idSentra) {
+    if (!CONFIG.GAS_URL) {
+      const raw = demoLoad();
+      raw.personil = (raw.personil || []).filter((r) => sid(r.id_sentra) !== sid(idSentra));
+      demoSave(raw);
+      return { ok: true, demo: true };
+    }
+    return postAction({ action: "personil_delete", id_sentra: idSentra });
+  }
+
+  // ---------- CRUD Infrastruktur (menu Edit > Edit Infrastruktur) ----------
+  const INFRA_KEYS = ["mesin_hitung", "mesin_sortir", "mobil_cr_flm"];
+  async function saveInfrastruktur(idSentra, infra) {
+    if (!CONFIG.GAS_URL) {
+      const raw = demoLoad(), s = raw.sentra.find((x) => sid(x.id) === sid(idSentra));
+      if (!s) throw new Error("Sentra tidak ditemukan");
+      raw.infrastruktur = (raw.infrastruktur || []).filter((r) => sid(r.id_sentra) !== sid(idSentra));
+      const row = { id_sentra: s.id, nama_sentra: s.nama_sentra };
+      INFRA_KEYS.forEach((k) => (row[k] = Number(infra[k]) || 0));
+      raw.infrastruktur.push(row);
+      demoSave(raw);
+      return { ok: true, demo: true };
+    }
+    return postAction({ action: "infra_save", id_sentra: idSentra, infra });
+  }
+  async function deleteInfrastruktur(idSentra) {
+    if (!CONFIG.GAS_URL) {
+      const raw = demoLoad();
+      raw.infrastruktur = (raw.infrastruktur || []).filter((r) => sid(r.id_sentra) !== sid(idSentra));
+      demoSave(raw);
+      return { ok: true, demo: true };
+    }
+    return postAction({ action: "infra_delete", id_sentra: idSentra });
+  }
+
   // ---------- agregasi ----------
   function aggregate(raw0) {
     const raw = { sentra: normRows(raw0.sentra), kelolaan: normRows(raw0.kelolaan), personil: normRows(raw0.personil), infrastruktur: normRows(raw0.infrastruktur) };
@@ -274,7 +357,7 @@
       });
       relasi += bankSet.size;
       const pers = {
-        kasir: num(p.kasir), custody_restock: num(p.custody_restock), custody_flm: num(p.custody_flm),
+        kasir: num(p.driver !== undefined && p.driver !== "" ? p.driver : p.kasir), custody_restock: num(p.custody_restock), custody_flm: num(p.custody_flm),
         custody_driver: num(p.custody_driver), admin: num(p.admin), manager: num(p.manager), asmen: num(p.asmen)
       };
       let pegawai = Object.values(pers).reduce((a, b) => a + b, 0);
@@ -329,7 +412,11 @@
     sparkle: '<path d="m12 3 1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3ZM19 17l.8 2.2L22 20l-2.2.8L19 23l-.8-2.2L16 20l2.2-.8L19 17Z"/>',
     clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
     home: '<path d="m3 11 9-8 9 8"/><path d="M5 10v10h14V10"/>',
-    save: '<path d="M5 3h11l4 4v14H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>'
+    save: '<path d="M5 3h11l4 4v14H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>',
+    edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/>',
+    trash: '<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>',
+    chev: '<path d="m6 9 6 6 6-6"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'
   };
   function mountSprite() {
     if (document.getElementById("sentra-sprite")) return;
@@ -339,6 +426,23 @@
   }
   if (document.body) mountSprite(); else document.addEventListener("DOMContentLoaded", mountSprite);
   const icon = (n, c) => `<svg class="ic ${c || ""}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+
+  // ---------- dropdown menu "Edit" di navbar ----------
+  function initNavDropdown() {
+    document.querySelectorAll(".nav-dd").forEach(function (dd) {
+      const btn = dd.querySelector(".nav-dd-btn");
+      const close = function () { dd.classList.remove("open"); btn.setAttribute("aria-expanded", "false"); };
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        const open = dd.classList.toggle("open");
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+      document.addEventListener("click", function (e) { if (!dd.contains(e.target)) close(); });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+      dd.querySelectorAll(".nav-dd-menu a").forEach(function (a) { a.addEventListener("click", close); });
+    });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initNavDropdown); else initNavDropdown();
 
   // ---------- ilustrasi hero: kepulauan titik-titik + jaringan sentra ----------
   function heroArt() {
@@ -380,5 +484,5 @@
 </svg>`;
   }
 
-  window.SentraAPI = { CONFIG, CITIES, findCity, loadData, submitData, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
+  window.SentraAPI = { CONFIG, CITIES, findCity, loadData, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
 })();
