@@ -9,7 +9,7 @@
   "use strict";
 
   const CONFIG = {
-    GAS_URL: "https://script.google.com/macros/s/AKfycbxlRZkhD3f92jwOQQJL6oTR-0hVwUGzztuhPNH-LQs6XbHZJJCoHZPm78NyFzrMEAZgnQ/exec"
+    GAS_URL: "https://script.google.com/macros/s/AKfycbzQ7xyvv3n_FwfS_ZZOlERcPadUd8gjvbs_o3skXhk3idBH3eC2_uCKpZnXf_9KNVI2/exec"
   };
 
   // Kota-kota besar yang tampil di peta (field "kota" pada form menentukan titiknya)
