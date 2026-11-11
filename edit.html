@@ -84,7 +84,7 @@
         <table class="dt">
           <thead><tr>
             <th>ID</th><th>Nama Sentra</th><th>Divisi</th><th>Region</th>
-            <th class="num">Driver</th><th class="num">Cust. Restock</th><th class="num">Cust. FLM</th><th class="num">Cust. Driver</th>
+            <th class="num">Kasir</th><th class="num">Cust. Restock</th><th class="num">Cust. FLM</th><th class="num">Cust. Driver</th>
             <th class="num">Admin</th><th class="num">Manager</th><th class="num">Asmen</th><th class="num">Total</th><th class="td-act">Aksi</th>
           </tr></thead>
           <tbody id="ptbody"><tr><td colspan="13" class="empty-row">Memuat data…</td></tr></tbody>
@@ -212,7 +212,7 @@
   let editing = null;     // sentra yang sedang diedit di modal
   let pRows = [];         // satu baris per sentra: { id, nama, divisi, region, kota, has, v:{driver,...}, total }
   let pEditing = null;    // sentra yang sedang diedit di modal personil
-  const PERS = [["driver", "Jumlah Pegawai Driver"], ["custody_restock", "Jumlah Pegawai Custody Restock"], ["custody_flm", "Jumlah Pegawai Custody-FLM"],
+  const PERS = [["driver", "Jumlah Pegawai Kasir"], ["custody_restock", "Jumlah Pegawai Custody Restock"], ["custody_flm", "Jumlah Pegawai Custody-FLM"],
                 ["custody_driver", "Jumlah Pegawai Custody-Driver"], ["admin", "Jumlah Pegawai Admin"], ["manager", "Jumlah Manager"], ["asmen", "Jumlah Asmen"]];
   const nInt = (v) => Math.max(0, Math.floor(parseNum(v)));
   let iRows = [];         // satu baris per sentra: { id, nama, divisi, region, kota, has, v:{mesin_hitung,...} }
