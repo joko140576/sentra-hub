@@ -270,13 +270,14 @@
       if (c) (byCity[c.name] = byCity[c.name] || []).push(s); else unplaced.push(s);
     });
     const max = Math.max(1, ...Object.values(byCity).map((a) => a.reduce((x, s) => x + s.kelolaan, 0)));
-    Object.entries(byCity).forEach(([name, list]) => {
+    Object.entries(byCity).forEach(([name, list], idx) => {
+      const no = idx + 1;   // nomor urut marker (1, 2, 3, ...)
       const c = CITIES.find((x) => x.name === name);
       const v = list.reduce((x, s) => x + s.kelolaan, 0);
       const size = Math.round(32 + 24 * Math.sqrt(v / max));
-      const ic = L.divIcon({ className: "pin-wrap", html: `<div class="pin">${list.length}</div>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
+      const ic = L.divIcon({ className: "pin-wrap", html: `<div class="pin">${no}</div>`, iconSize: [size, size], iconAnchor: [size / 2, size / 2] });
       const m = L.marker([c.lat, c.lng], { icon: ic, riseOnHover: true }).addTo(map);
-      m.bindTooltip(`<b>${esc(name)}</b> · ${fmtNum(v)}`, { direction: "top", offset: [0, -size / 2] });
+      m.bindTooltip(`<b>${no}. ${esc(name)}</b> · ${fmtNum(v)}`, { direction: "top", offset: [0, -size / 2] });
       m.on("click", () => selectCity(name));
       markers.push(m);
       setTimeout(() => { pins[name] = m.getElement() && m.getElement().querySelector(".pin"); if (name === activeCity && pins[name]) pins[name].classList.add("active"); }, 0);
