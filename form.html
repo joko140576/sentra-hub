@@ -71,7 +71,7 @@
         <button type="button" class="btn btn-blue btn-sm" id="addRow"><svg class="ic"><use href="#i-plus"/></svg> Tambah</button></div>
       <datalist id="dlBank"><option>BCA</option><option>Mandiri</option><option>BNI</option><option>BRI</option><option>BTN</option><option>BSI</option><option>CIMB Niaga</option><option>Permata</option><option>Danamon</option><option>OCBC</option><option>Maybank</option><option>Panin</option></datalist>
       <div id="rows"></div>
-      <div class="total-pill"><span>Total kelolaan sentra ini · <span id="tBankN">0</span> bank</span><b id="tKel">Rp 0</b></div>
+      <div class="total-pill"><span>Total kelolaan sentra ini · <span id="tBankN">0</span> bank</span><b id="tKel">0</b></div>
     </section>
 
     <!-- SECTION 3 -->
@@ -95,7 +95,7 @@
 
     <div class="submit-bar">
       <div class="sum">
-        <div><b id="sKel">Rp 0</b>Total kelolaan</div>
+        <div><b id="sKel">0</b>Total kelolaan</div>
         <div><b id="sPeg">0</b>Total pegawai</div>
       </div>
       <div style="display:flex;gap:10px">
@@ -133,7 +133,7 @@
   $("#heroArt").innerHTML = A.heroArt();
 
   const PERS = [
-    ["driver", "Jumlah Pegawai Driver"], ["custody_restock", "Jumlah Pegawai Custody Restock"], ["custody_flm", "Jumlah Pegawai Custody-FLM"],
+    ["driver", "Jumlah Pegawai Kasir"], ["custody_restock", "Jumlah Pegawai Custody Restock"], ["custody_flm", "Jumlah Pegawai Custody-FLM"],
     ["custody_driver", "Jumlah Pegawai Custody-Driver"], ["admin", "Jumlah Pegawai Admin"], ["manager", "Jumlah Manager"], ["asmen", "Jumlah Asmen"]
   ];
 
@@ -158,7 +158,7 @@
     el.innerHTML = `
       <div class="field"><label>Nama Bank</label><input class="r-bank" list="dlBank" placeholder="mis. BCA" maxlength="60" value="${esc(d.bank || "")}"></div>
       <div class="field"><label>Bisnis</label><select class="r-bisnis"><option>CR &amp; FLM</option><option>CIT</option><option>SLM</option></select></div>
-      <div class="field"><label>Jumlah Kelolaan (Rp)</label><input class="r-jml" inputmode="numeric" placeholder="0" value="${d.jml ? fmtNum(d.jml) : ""}"><div class="hint r-hint"></div></div>
+      <div class="field"><label>Jumlah Kelolaan</label><input class="r-jml" inputmode="numeric" placeholder="0" value="${d.jml ? fmtNum(d.jml) : ""}"><div class="hint r-hint"></div></div>
       <button type="button" class="icon-btn r-del" title="Hapus baris" aria-label="Hapus baris">${icon("x")}</button>`;
     $("#rows").appendChild(el);
     if (d.bisnis) el.querySelector(".r-bisnis").value = d.bisnis;
