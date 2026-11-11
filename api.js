@@ -127,10 +127,10 @@
   function fmtRp(n, long) {
     n = Number(n) || 0;
     const a = Math.abs(n);
-    if (a >= 1e12) return "Rp " + nf(2).format(n / 1e12) + (long ? " Triliun" : " T");
-    if (a >= 1e9) return "Rp " + nf(1).format(n / 1e9) + (long ? " Miliar" : " M");
-    if (a >= 1e6) return "Rp " + nf(1).format(n / 1e6) + (long ? " Juta" : " Jt");
-    return "Rp " + nf(0).format(n);
+    if (a >= 1e12) return nf(2).format(n / 1e12) + (long ? " Triliun" : " T");
+    if (a >= 1e9) return nf(1).format(n / 1e9) + (long ? " Miliar" : " M");
+    if (a >= 1e6) return nf(1).format(n / 1e6) + (long ? " Juta" : " Jt");
+    return nf(0).format(n);
   }
   // ---------- rasio Pegawai : Kelolaan  (format "1 : N") ----------
   // N = jumlah kelolaan per 1 pegawai. Ideal = 1 : 5
