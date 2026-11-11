@@ -9,8 +9,42 @@
   "use strict";
 
   const CONFIG = {
-    GAS_URL: "https://script.google.com/macros/s/AKfycbz-cQjFfe6xyD6JVhwU9RsxBLiUuoewGLsIS8qQUp_E83IrsyFEg7fCS7HYGrtMTYxV/exec"
+    GAS_URL: "https://script.google.com/macros/s/AKfycbzcy3ihyzL15FB9dVhwq-q5oIZ-izd4gbUQrnV7Gm36R4yJfpp7-v4zN9dTx-04TtMCrQ/exec"
   };
+
+  // ---------- sesi login ----------
+  const SESSION_KEY = "sentra_session";
+  function getSession() {
+    try {
+      const s = JSON.parse(localStorage.getItem(SESSION_KEY) || "null");
+      if (s && s.token && s.exp > Date.now()) return s;
+    } catch (_) {}
+    return null;
+  }
+  function clearSession() { try { localStorage.removeItem(SESSION_KEY); } catch (_) {} }
+  const tokenVal = () => (getSession() || {}).token || "";
+  function goLogin() {
+    const here = (location.pathname.split("/").pop() || "index.html") + location.hash;
+    location.replace("login.html?next=" + encodeURIComponent(here));
+  }
+  // dipanggil setiap respons GAS: sesi ditolak server -> kembali ke halaman login
+  function authCheck(j) { if (j && !j.ok && j.code === "AUTH") { clearSession(); goLogin(); } }
+  async function login(user, password) {
+    if (!CONFIG.GAS_URL) throw new Error("Mode demo: login tidak diperlukan");
+    const res = await fetch(CONFIG.GAS_URL, { method: "POST", body: JSON.stringify({ action: "login", user, password }) });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const j = await res.json(); authCheck(j);
+    if (!j.ok) throw new Error(j.error || "Login gagal");
+    try {
+      localStorage.setItem(SESSION_KEY, JSON.stringify({ token: j.token, user: j.user, exp: Date.now() + (Number(j.ttl) || 21600) * 1000 - 60000 }));
+    } catch (_) { throw new Error("Browser memblokir penyimpanan sesi (nonaktifkan mode privat)"); }
+    return j;
+  }
+  function logout() {
+    const s = getSession(); clearSession();
+    try { if (CONFIG.GAS_URL && s) fetch(CONFIG.GAS_URL, { method: "POST", body: JSON.stringify({ action: "logout", token: s.token }), keepalive: true }).catch(() => {}); } catch (_) {}
+    location.replace("login.html");
+  }
 
   // Kota-kota besar yang tampil di peta (field "kota" pada form menentukan titiknya)
   const CITIES = [
@@ -230,10 +264,10 @@
   // ---------- koneksi Google Apps Script ----------
   async function loadData() {
     if (!CONFIG.GAS_URL) return { raw: demoLoad(), demo: true };
-    const url = CONFIG.GAS_URL + (CONFIG.GAS_URL.includes("?") ? "&" : "?") + "action=all&_=" + Date.now();
+    const url = CONFIG.GAS_URL + (CONFIG.GAS_URL.includes("?") ? "&" : "?") + "action=all&token=" + encodeURIComponent(tokenVal()) + "&_=" + Date.now();
     const res = await fetch(url);
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const j = await res.json();
+    const j = await res.json(); authCheck(j);
     if (!j.ok) throw new Error(j.error || "Gagal memuat data");
     return { raw: j, demo: false };
   }
@@ -242,9 +276,9 @@
     payload.action = "submit";
     if (!CONFIG.GAS_URL) return { ...demoSubmit(payload), demo: true };
     // Tanpa header Content-Type => "simple request" (text/plain) => tidak ada preflight CORS.
-    const res = await fetch(CONFIG.GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+    const res = await fetch(CONFIG.GAS_URL, { method: "POST", body: JSON.stringify({ ...payload, token: tokenVal() }) });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const j = await res.json();
+    const j = await res.json(); authCheck(j);
     if (!j.ok) throw new Error(j.error || "Gagal menyimpan");
     return { ...j, demo: false };
   }
@@ -252,9 +286,9 @@
   // ---------- CRUD Kelolaan (menu Edit > Edit Kelolaan) ----------
   async function postAction(payload) {
     // Tanpa header Content-Type => text/plain => tanpa preflight CORS (sama seperti submitData)
-    const res = await fetch(CONFIG.GAS_URL, { method: "POST", body: JSON.stringify(payload) });
+    const res = await fetch(CONFIG.GAS_URL, { method: "POST", body: JSON.stringify({ ...payload, token: tokenVal() }) });
     if (!res.ok) throw new Error("HTTP " + res.status);
-    const j = await res.json();
+    const j = await res.json(); authCheck(j);
     if (!j.ok) throw new Error(j.error || "Permintaan gagal");
     return { ...j, demo: false };
   }
@@ -390,6 +424,9 @@
 
   // ---------- ikon (inline SVG sprite, gaya outline) ----------
   const ICONS = {
+    lock: '<rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5M21 12H9"/>',
+    eye: '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
     map: '<path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/>',
     pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
     chart: '<path d="M3 3v18h18"/><path d="M7 16v-5M12 16V6M17 16v-3"/>',
@@ -484,5 +521,20 @@
 </svg>`;
   }
 
-  window.SentraAPI = { CONFIG, CITIES, findCity, loadData, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
+  // ---------- gerbang login (semua halaman kecuali login.html) ----------
+  (function guard() {
+    const hide = document.getElementById("auth-hide");
+    if (!CONFIG.GAS_URL || window.SENTRA_PUBLIC) { if (hide) hide.remove(); }
+    else if (!getSession()) { goLogin(); return; }
+    else if (hide) hide.remove();
+    function bind() {
+      const b = document.getElementById("btnLogout");
+      if (!b) return;
+      if (!CONFIG.GAS_URL) { b.remove(); return; }
+      b.addEventListener("click", (e) => { e.preventDefault(); logout(); });
+    }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind); else bind();
+  })();
+
+  window.SentraAPI = { CONFIG, getSession, login, logout, CITIES, findCity, loadData, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
 })();
