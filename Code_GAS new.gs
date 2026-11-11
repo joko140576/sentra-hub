@@ -30,9 +30,90 @@ const SHEETS = {
 const DIVISI = ['Opr 1', 'Opr 2'];
 const BISNIS = ['CR & FLM', 'CIT', 'SLM'];
 
+/* ---------------- LOGIN (sheet "users": kolom user & password) ----------------
+   - Spreadsheet user = USERS_SS_ID (bisa berbeda dari spreadsheet data).
+   - Login benar -> dibuat token acak, disimpan di CacheService (maks 6 jam).
+   - Semua aksi baca/tulis data WAJIB membawa token ini.
+   - 5x salah berturut-turut untuk user yang sama -> dikunci 5 menit. */
+const USERS_SS_ID = '15Yd-3IcukNwFIfmhI6hy8j0e_80FK-ix8d6AKqMwtd8';
+const USERS_SHEET = 'users';
+const SESSION_TTL = 21600;   // detik (6 jam = batas maksimal CacheService)
+const MAX_FAIL = 5;
+const LOCK_SECONDS = 300;
+
+/* Jalankan SEKALI dari editor (Run) untuk memberi izin akses ke spreadsheet users. */
+function authSetup() {
+  const sh = usersSheet_();
+  Logger.log('Sheet users OK, jumlah baris: ' + sh.getLastRow());
+}
+
+function usersSheet_() {
+  const ss = SpreadsheetApp.openById(USERS_SS_ID);
+  const want = USERS_SHEET.toLowerCase();
+  const sh = ss.getSheets().filter(function (s) { return s.getName().trim().toLowerCase() === want; })[0];
+  if (!sh) throw new Error('Sheet "' + USERS_SHEET + '" tidak ditemukan');
+  return sh;
+}
+
+function authError_() {
+  const e = new Error('Sesi berakhir, silakan login kembali');
+  e.code = 'AUTH';
+  return e;
+}
+
+function requireAuth_(token) {
+  token = String(token || '');
+  if (!token || !CacheService.getScriptCache().get('sess_' + token)) throw authError_();
+}
+
+function login_(b) {
+  const user = String(b.user || '').trim();
+  const pass = String(b.password || '').trim();
+  if (!user || !pass) return { ok: false, error: 'Isi user dan password' };
+
+  const cache = CacheService.getScriptCache();
+  const fkey = 'fail_' + Utilities.base64EncodeWebSafe(
+    Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, user.toLowerCase()));
+  const fails = Number(cache.get(fkey) || 0);
+  if (fails >= MAX_FAIL) return { ok: false, error: 'Terlalu banyak percobaan salah. Coba lagi dalam 5 menit.' };
+
+  const vals = usersSheet_().getDataRange().getValues();
+  const head = (vals[0] || []).map(function (h) { return String(h).trim().toLowerCase(); });
+  const iu = head.indexOf('user'), ip = head.indexOf('password');
+  if (iu < 0 || ip < 0) throw new Error('Sheet users harus punya kolom "user" dan "password"');
+
+  let found = null;
+  for (let i = 1; i < vals.length; i++) {
+    const u = String(vals[i][iu]).trim();
+    const p = String(vals[i][ip]).trim();
+    if (u && p && u.toLowerCase() === user.toLowerCase() && p === pass) { found = u; break; }
+  }
+  if (!found) {
+    cache.put(fkey, String(fails + 1), LOCK_SECONDS);
+    return { ok: false, error: 'User atau password salah' };
+  }
+  cache.remove(fkey);
+  const token = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
+  cache.put('sess_' + token, found, SESSION_TTL);
+  return { ok: true, token: token, user: found, ttl: SESSION_TTL };
+}
+
+function logout_(b) {
+  const t = String(b.token || '');
+  if (t) CacheService.getScriptCache().remove('sess_' + t);
+  return { ok: true };
+}
+
+function errJson_(err) {
+  const o = { ok: false, error: String(err && err.message || err) };
+  if (err && err.code) o.code = err.code;
+  return json_(o);
+}
+
 /* ---------------- ENDPOINT ---------------- */
 function doGet(e) {
   try {
+    requireAuth_(e && e.parameter && e.parameter.token);
     return json_({
       ok: true,
       sentra: readSheet_('Sentra'),
@@ -43,15 +124,29 @@ function doGet(e) {
       ts: new Date().toISOString()
     });
   } catch (err) {
-    return json_({ ok: false, error: String(err && err.message || err) });
+    return errJson_(err);
   }
 }
 
 function doPost(e) {
+  let body;
+  try {
+    body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
+  } catch (err) {
+    return json_({ ok: false, error: 'Format permintaan tidak valid' });
+  }
+  // login & logout tidak butuh token dan tidak perlu lock
+  try {
+    if (body.action === 'login')  return json_(login_(body));
+    if (body.action === 'logout') return json_(logout_(body));
+    requireAuth_(body.token);
+  } catch (err) {
+    return errJson_(err);
+  }
+
   const lock = LockService.getScriptLock();
   try {
     lock.waitLock(20000);
-    const body = JSON.parse((e && e.postData && e.postData.contents) || '{}');
     if (body.action === 'submit') {
       const res = saveSubmission_(body);
       return json_({ ok: true, id: res.id, updated: res.updated });
@@ -64,7 +159,7 @@ function doPost(e) {
     if (body.action === 'infra_delete')     return json_({ ok: true, result: deleteInfrastruktur_(body) });
     throw new Error('Aksi tidak dikenal');
   } catch (err) {
-    return json_({ ok: false, error: String(err && err.message || err) });
+    return errJson_(err);
   } finally {
     try { lock.releaseLock(); } catch (_) {}
   }
