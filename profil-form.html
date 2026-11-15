@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentra Hub – Form Profil COU</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2316277a'/%3E%3Cstop offset='1' stop-color='%232748d8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-size='34' font-weight='800' text-anchor='middle' fill='%23ffe3a1' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.pf-wrap{max-width:860px;margin:0 auto;padding:26px 0 60px}
+.pf-head{margin-bottom:22px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.pf-card{padding:28px;margin-top:18px}
+.pf-card h3{font-family:'Sora',sans-serif;font-size:17px;color:var(--navy);margin-bottom:4px;display:flex;gap:10px;align-items:center}
+.pf-card h3 .ic{color:var(--blue)}
+.pf-card .hint{font-size:13px;color:var(--muted);margin-bottom:18px}
+.field textarea{width:100%;min-height:104px;resize:vertical;padding:13px 15px;border-radius:13px;background:#fff;border:1px solid var(--line2);color:var(--ink);font:500 14.5px 'Plus Jakarta Sans',sans-serif;outline:none;transition:.2s}
+.field textarea:hover{border-color:#b4c0e0}
+.field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(39,72,216,.13)}
+.field.err textarea,.field.err select{border-color:var(--danger);box-shadow:0 0 0 4px rgba(224,54,79,.12)}
+.field .cnt{font-size:11.5px;color:var(--muted);text-align:right}
+.drop{position:relative;border:2px dashed var(--line2);border-radius:18px;background:#f9fafe;min-height:230px;display:grid;place-items:center;overflow:hidden;cursor:pointer;transition:.2s;text-align:center}
+.drop:hover,.drop.over{border-color:var(--blue);background:var(--blue-soft)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.drop .ph{padding:24px;color:var(--ink2);font-size:14px;pointer-events:none}
+.drop .ph .ic{font-size:34px;color:var(--blue);display:block;margin:0 auto 10px}
+.drop .ph small{display:block;color:var(--muted);margin-top:4px;font-size:12px}
+.drop img{display:block;width:100%;max-height:380px;object-fit:cover;pointer-events:none}
+.drop.has .ph{display:none}
+.img-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--muted)}
+.cur-box{display:none;margin-top:10px;padding:10px 14px;border-radius:12px;background:var(--gold-soft);border:1px solid #f0dcae;color:#8f650f;font-size:12.5px;font-weight:600}
+.cur-box.show{display:block}
+.pf-actions{display:flex;justify-content:flex-end;gap:12px;margin-top:22px;flex-wrap:wrap}
+</style>
+<style id="auth-hide">html{visibility:hidden}</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-in">
+    <a class="brand" href="index.html#top">
+      <div class="brand-mark"><svg class="ic"><use href="#i-bank"/></svg></div>
+      <div class="t"><span class="t">SENTRA HUB</span><small>Cash Operations</small></div>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#peta"><svg class="ic"><use href="#i-map"/></svg><span class="lbl">Peta Sentra</span></a>
+      <a href="index.html#dashboard"><svg class="ic"><use href="#i-chart"/></svg><span class="lbl">Dashboard</span></a>
+      <a href="infocou.html"><svg class="ic"><use href="#i-info"/></svg><span class="lbl">Info COU</span></a>
+      <div class="nav-dd active">
+        <button type="button" class="nav-dd-btn" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-building"/></svg><span class="lbl">Profil COU</span><svg class="ic caret"><use href="#i-chev"/></svg></button>
+        <div class="nav-dd-menu" role="menu">
+          <a href="profil-form.html" role="menuitem" class="active"><svg class="ic"><use href="#i-edit"/></svg><span class="lbl">Form Profil</span></a>
+          <a href="profil-tampil.html" role="menuitem"><svg class="ic"><use href="#i-eye"/></svg><span class="lbl">Tampilkan Profil</span></a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <button type="button" class="nav-dd-btn" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-edit"/></svg><span class="lbl">Edit</span><svg class="ic caret"><use href="#i-chev"/></svg></button>
+        <div class="nav-dd-menu" role="menu">
+          <a href="edit.html#kelolaan" role="menuitem"><svg class="ic"><use href="#i-bank"/></svg><span class="lbl">Edit Kelolaan</span></a>
+          <a href="edit.html#personil" role="menuitem"><svg class="ic"><use href="#i-users"/></svg><span class="lbl">Edit Personil</span></a>
+          <a href="edit.html#infrastruktur" role="menuitem"><svg class="ic"><use href="#i-truck"/></svg><span class="lbl">Edit Infrastruktur</span></a>
+        </div>
+      </div>
+      <a href="form.html" class="cta"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Input Data</span></a>
+      <a href="#" id="btnLogout" title="Keluar"><svg class="ic"><use href="#i-logout"/></svg><span class="lbl">Keluar</span></a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="pf-wrap">
+    <div class="pf-head">
+      <div>
+        <span class="eyebrow"><svg class="ic"><use href="#i-building"/></svg> Profil COU</span>
+        <h2 class="title">Form Profil COU</h2>
+        <p class="lead-dark">Pilih COU, unggah foto kantor, dan isi alamatnya. Data tersimpan ke Google Sheets (sheet <b>ProfilCOU</b>) dan gambar ke Google Drive.</p>
+      </div>
+      <span class="chip" id="status"><span class="dot demo"></span> Memuat…</span>
+    </div>
+
+    <form id="f" novalidate>
+      <section class="card pf-card">
+        <h3><svg class="ic"><use href="#i-pin"/></svg> 1. Pilih COU</h3>
+        <p class="hint">Daftar diambil dari data nama sentra yang sudah diinput.</p>
+        <div class="field" id="fSentra">
+          <label for="sentra">Nama Sentra / COU <i>*</i></label>
+          <select id="sentra"><option value="">Memuat daftar sentra…</option></select>
+        </div>
+        <div class="cur-box" id="curBox"></div>
+      </section>
+
+      <section class="card pf-card">
+        <h3><svg class="ic"><use href="#i-building"/></svg> 2. Gambar Kantor</h3>
+        <p class="hint">Format JPG, PNG, atau WEBP. Otomatis dikecilkan agar ringan. Kosongkan jika tidak ingin mengganti gambar yang sudah ada.</p>
+        <label class="drop" id="drop">
+          <input type="file" id="file" accept="image/jpeg,image/png,image/webp">
+          <div class="ph"><svg class="ic"><use href="#i-plus"/></svg><b>Klik atau seret gambar ke sini</b><small>JPG / PNG / WEBP</small></div>
+          <img id="prev" alt="Pratinjau gambar kantor" hidden>
+        </label>
+        <div class="img-tools"><span id="fileInfo">Belum ada gambar dipilih</span><button type="button" class="btn btn-sm" id="btnClear" hidden><svg class="ic"><use href="#i-x"/></svg> Batalkan gambar baru</button></div>
+      </section>
+
+      <section class="card pf-card">
+        <h3><svg class="ic"><use href="#i-pin"/></svg> 3. Alamat</h3>
+        <p class="hint">Alamat lengkap kantor COU.</p>
+        <div class="field" id="fAlamat">
+          <label for="alamat">Alamat Kantor <i>*</i></label>
+          <textarea id="alamat" maxlength="500" placeholder="Contoh: Jl. Jenderal Sudirman No. 12, Jakarta Pusat 10220"></textarea>
+          <div class="cnt"><span id="cnt">0</span> / 500</div>
+        </div>
+      </section>
+
+      <div class="pf-actions">
+        <a class="btn" href="profil-tampil.html"><svg class="ic"><use href="#i-eye"/></svg> Lihat Profil</a>
+        <button type="submit" class="btn btn-gold" id="btnSave"><svg class="ic"><use href="#i-check"/></svg> Simpan Profil</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script src="api.js"></script>
+<script>
+(function () {
+  "use strict";
+  const A = window.SentraAPI, $ = (s) => document.querySelector(s);
+  let sentras = [], profil = {}, newImage = "";   // newImage = data URL gambar baru
+
+  function setStatus(demo) {
+    const hh = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    $("#status").innerHTML = demo ? '<span class="dot demo"></span> Mode demo' : '<span class="dot"></span> Live · Google Sheets · ' + hh;
+  }
+  function showPreview(src) {
+    const img = $("#prev");
+    if (src) { img.src = src; img.hidden = false; $("#drop").classList.add("has"); }
+    else { img.removeAttribute("src"); img.hidden = true; $("#drop").classList.remove("has"); }
+  }
+  function onSelect() {
+    const id = $("#sentra").value, p = profil[(id || "").toUpperCase()];
+    newImage = ""; $("#file").value = ""; $("#btnClear").hidden = true;
+    $("#alamat").value = p ? (p.alamat || "") : ""; $("#cnt").textContent = $("#alamat").value.length;
+    showPreview(p && p.gambar_url ? p.gambar_url : "");
+    $("#fileInfo").textContent = p && p.gambar_url ? "Gambar saat ini ditampilkan. Pilih file baru untuk menggantinya." : "Belum ada gambar dipilih";
+    const box = $("#curBox");
+    if (id && p) { box.textContent = "Profil COU ini sudah pernah diisi — menyimpan akan memperbarui data tersebut."; box.classList.add("show"); }
+    else box.classList.remove("show");
+  }
+  async function pickFile(file) {
+    if (!file) return;
+    try {
+      const url = await A.imageToDataUrl(file, 1200, 0.82);
+      if (url.length * 0.75 > 1.9 * 1024 * 1024) throw new Error("Gambar masih terlalu besar, gunakan gambar lain");
+      newImage = url; showPreview(url);
+      $("#fileInfo").textContent = file.name + " · " + Math.round(url.length * 0.75 / 1024) + " KB (setelah dikecilkan)";
+      $("#btnClear").hidden = false;
+    } catch (e) { $("#file").value = ""; A.toast(e.message, "error"); }
+  }
+  $("#file").addEventListener("change", (e) => pickFile(e.target.files[0]));
+  ["dragover", "dragenter"].forEach((n) => $("#drop").addEventListener(n, (e) => { e.preventDefault(); $("#drop").classList.add("over"); }));
+  ["dragleave", "drop"].forEach((n) => $("#drop").addEventListener(n, () => $("#drop").classList.remove("over")));
+  $("#drop").addEventListener("drop", (e) => { e.preventDefault(); pickFile(e.dataTransfer.files[0]); });
+  $("#btnClear").addEventListener("click", onSelect);
+  $("#alamat").addEventListener("input", () => { $("#cnt").textContent = $("#alamat").value.length; $("#fAlamat").classList.remove("err"); });
+  $("#sentra").addEventListener("change", () => { $("#fSentra").classList.remove("err"); onSelect(); });
+
+  $("#f").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = $("#sentra").value, alamat = $("#alamat").value.trim();
+    $("#fSentra").classList.toggle("err", !id); $("#fAlamat").classList.toggle("err", !alamat);
+    if (!id) return A.toast("Pilih nama sentra terlebih dahulu", "error");
+    if (!alamat) return A.toast("Alamat wajib diisi", "error");
+    const btn = $("#btnSave"), old = btn.innerHTML; btn.disabled = true; btn.textContent = "Menyimpan…";
+    try {
+      await A.saveProfil(id, alamat, newImage);
+      A.toast("Profil COU berhasil disimpan", "success");
+      await load(id);
+    } catch (err) { A.toast("Gagal menyimpan: " + err.message, "error"); }
+    btn.disabled = false; btn.innerHTML = old;
+  });
+
+  async function load(keep) {
+    try {
+      const { raw, demo } = await A.loadData();
+      sentras = A.aggregate(raw).sentras.slice().sort((a, b) => String(a.nama).localeCompare(String(b.nama), "id"));
+      profil = A.profilMap(raw); setStatus(demo);
+    } catch (err) { A.toast("Gagal memuat data: " + err.message, "error"); $("#status").innerHTML = '<span class="dot demo"></span> Gagal memuat'; }
+    $("#sentra").innerHTML = '<option value="">— Pilih COU —</option>' +
+      sentras.map((s) => '<option value="' + A.esc(s.id) + '"' + (profil[String(s.id).toUpperCase()] ? " data-done=\"1\"" : "") + '>' + A.esc(s.nama) + (profil[String(s.id).toUpperCase()] ? "  ✓" : "") + '</option>').join("");
+    if (keep) $("#sentra").value = keep;
+    onSelect();
+  }
+  load();
+})();
+</script>
+</body>
+</html>

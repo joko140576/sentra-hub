@@ -9,7 +9,7 @@
   "use strict";
 
   const CONFIG = {
-    GAS_URL: "https://script.google.com/macros/s/AKfycbzcy3ihyzL15FB9dVhwq-q5oIZ-izd4gbUQrnV7Gm36R4yJfpp7-v4zN9dTx-04TtMCrQ/exec"
+    GAS_URL: "https://script.google.com/macros/s/AKfycbwsqrt9S1SRsVHKmB365LQLX_xgAHY1eTwyB5gVeuCkBPIJePq27RngNV397NdKUMDwSg/exec"
   };
 
   // ---------- sesi login ----------
@@ -366,6 +366,52 @@
     return postAction({ action: "infra_delete", id_sentra: idSentra });
   }
 
+
+  // ---------- Profil COU (menu Profil COU > Form Profil / Tampilkan Profil) ----------
+  // Data profil (alamat + gambar kantor) ada di sheet "ProfilCOU"; dikirim backend lewat raw.profil.
+  function profilMap(raw) {
+    const m = {};
+    ((raw && raw.profil) || []).forEach((r) => { const k = sid(r.id_sentra); if (k) m[k] = r; });
+    return m;
+  }
+  // gambar -> data URL JPEG (maks. sisi 1200px) agar ringan dikirim ke Apps Script
+  function imageToDataUrl(file, maxSide, quality) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type)) return reject(new Error("File harus berformat JPG, PNG, atau WEBP"));
+      const fr = new FileReader();
+      fr.onerror = () => reject(new Error("Gagal membaca file gambar"));
+      fr.onload = () => {
+        const img = new Image();
+        img.onerror = () => reject(new Error("File gambar tidak dapat dibuka"));
+        img.onload = () => {
+          const k = Math.min(1, (maxSide || 1200) / Math.max(img.width, img.height));
+          const c = document.createElement("canvas");
+          c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          const ctx = c.getContext("2d");
+          ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
+          ctx.drawImage(img, 0, 0, c.width, c.height);
+          resolve(c.toDataURL("image/jpeg", quality || 0.82));
+        };
+        img.src = fr.result;
+      };
+      fr.readAsDataURL(file);
+    });
+  }
+  // gambar: data URL (opsional; kosong = pertahankan gambar lama)
+  async function saveProfil(idSentra, alamat, gambar) {
+    if (!CONFIG.GAS_URL) {
+      const raw = demoLoad(), s = raw.sentra.find((x) => sid(x.id) === sid(idSentra));
+      if (!s) throw new Error("Sentra tidak ditemukan");
+      raw.profil = raw.profil || [];
+      const old = raw.profil.find((r) => sid(r.id_sentra) === sid(idSentra)) || {};
+      raw.profil = raw.profil.filter((r) => sid(r.id_sentra) !== sid(idSentra));
+      raw.profil.push({ id_sentra: s.id, nama_sentra: s.nama_sentra, alamat, gambar_url: gambar || old.gambar_url || "" });
+      demoSave(raw);
+      return { ok: true, demo: true };
+    }
+    return postAction({ action: "profil_save", id_sentra: idSentra, alamat, gambar: gambar || "" });
+  }
+
   // ---------- agregasi ----------
   function aggregate(raw0) {
     const raw = { sentra: normRows(raw0.sentra), kelolaan: normRows(raw0.kelolaan), personil: normRows(raw0.personil), infrastruktur: normRows(raw0.infrastruktur) };
@@ -453,6 +499,7 @@
     edit: '<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5Z"/>',
     trash: '<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>',
     chev: '<path d="m6 9 6 6 6-6"/>',
+    info: '<circle cx="12" cy="12" r="10"/><path d="M12 11v5M12 7.5h.01"/>',
     search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'
   };
   function mountSprite() {
@@ -536,5 +583,5 @@
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind); else bind();
   })();
 
-  window.SentraAPI = { CONFIG, getSession, login, logout, CITIES, findCity, loadData, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
+  window.SentraAPI = { CONFIG, getSession, login, logout, CITIES, findCity, loadData, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, saveProfil, profilMap, imageToDataUrl, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
 })();

@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentra Hub – Tampilkan Profil COU</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2316277a'/%3E%3Cstop offset='1' stop-color='%232748d8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-size='34' font-weight='800' text-anchor='middle' fill='%23ffe3a1' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.pt-wrap{max-width:980px;margin:0 auto;padding:26px 0 60px}
+.pt-head{margin-bottom:22px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+.pt-pick{padding:22px 24px;display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap}
+.pt-pick .field{flex:1 1 320px}
+.pt-empty{padding:56px 24px;text-align:center;color:var(--muted);margin-top:18px}
+.pt-empty .ring{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;margin:0 auto 14px;background:var(--blue-soft);color:var(--blue);font-size:28px}
+.pt-empty b{display:block;color:var(--navy);font:700 17px 'Sora',sans-serif;margin-bottom:4px}
+.pt-card{margin-top:18px;overflow:hidden}
+.pt-photo{position:relative;background:linear-gradient(135deg,#16277a,var(--blue));min-height:260px;display:grid;place-items:center;color:rgba(255,255,255,.75)}
+.pt-photo img{display:block;width:100%;max-height:420px;object-fit:cover}
+.pt-photo .none{padding:40px;text-align:center;font-size:14px}
+.pt-photo .none .ic{font-size:40px;display:block;margin:0 auto 10px;opacity:.8}
+.pt-body{padding:28px}
+.pt-title{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:14px}
+.pt-title h3{font-family:'Sora',sans-serif;font-size:clamp(22px,3vw,30px);letter-spacing:-.02em;color:var(--navy);line-height:1.2}
+.pt-addr{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;background:var(--gold-soft);border:1px solid #f0dcae;color:#6f4e0b;font-size:14.5px;font-weight:500}
+.pt-addr .ic{font-size:20px;color:var(--gold);margin-top:1px}
+.pt-addr.empty{background:#f3f5fb;border-color:var(--line);color:var(--muted)}
+.pt-addr.empty .ic{color:var(--muted)}
+.pt-sec{margin:24px 0 12px;font:800 11.5px 'Plus Jakarta Sans',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.pt-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.pt-grid.g3{grid-template-columns:repeat(3,1fr)}
+@media(max-width:640px){.pt-grid.g3{grid-template-columns:1fr}.pt-body{padding:20px}}
+.pt-note{margin-top:16px;font-size:12.5px;color:var(--muted)}
+</style>
+<style id="auth-hide">html{visibility:hidden}</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-in">
+    <a class="brand" href="index.html#top">
+      <div class="brand-mark"><svg class="ic"><use href="#i-bank"/></svg></div>
+      <div class="t"><span class="t">SENTRA HUB</span><small>Cash Operations</small></div>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#peta"><svg class="ic"><use href="#i-map"/></svg><span class="lbl">Peta Sentra</span></a>
+      <a href="index.html#dashboard"><svg class="ic"><use href="#i-chart"/></svg><span class="lbl">Dashboard</span></a>
+      <a href="infocou.html"><svg class="ic"><use href="#i-info"/></svg><span class="lbl">Info COU</span></a>
+      <div class="nav-dd active">
+        <button type="button" class="nav-dd-btn" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-building"/></svg><span class="lbl">Profil COU</span><svg class="ic caret"><use href="#i-chev"/></svg></button>
+        <div class="nav-dd-menu" role="menu">
+          <a href="profil-form.html" role="menuitem"><svg class="ic"><use href="#i-edit"/></svg><span class="lbl">Form Profil</span></a>
+          <a href="profil-tampil.html" role="menuitem" class="active"><svg class="ic"><use href="#i-eye"/></svg><span class="lbl">Tampilkan Profil</span></a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <button type="button" class="nav-dd-btn" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-edit"/></svg><span class="lbl">Edit</span><svg class="ic caret"><use href="#i-chev"/></svg></button>
+        <div class="nav-dd-menu" role="menu">
+          <a href="edit.html#kelolaan" role="menuitem"><svg class="ic"><use href="#i-bank"/></svg><span class="lbl">Edit Kelolaan</span></a>
+          <a href="edit.html#personil" role="menuitem"><svg class="ic"><use href="#i-users"/></svg><span class="lbl">Edit Personil</span></a>
+          <a href="edit.html#infrastruktur" role="menuitem"><svg class="ic"><use href="#i-truck"/></svg><span class="lbl">Edit Infrastruktur</span></a>
+        </div>
+      </div>
+      <a href="form.html" class="cta"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Input Data</span></a>
+      <a href="#" id="btnLogout" title="Keluar"><svg class="ic"><use href="#i-logout"/></svg><span class="lbl">Keluar</span></a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="pt-wrap">
+    <div class="pt-head">
+      <div>
+        <span class="eyebrow"><svg class="ic"><use href="#i-building"/></svg> Profil COU</span>
+        <h2 class="title">Tampilkan Profil COU</h2>
+        <p class="lead-dark">Pilih nama sentra untuk melihat profil lengkapnya: gambar kantor, alamat, kelolaan, pegawai, dan infrastruktur.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="chip" id="status"><span class="dot demo"></span> Memuat…</span>
+        <button class="btn btn-sm" id="refresh" type="button"><svg class="ic"><use href="#i-refresh"/></svg> Muat ulang</button>
+      </div>
+    </div>
+
+    <section class="card pt-pick">
+      <div class="field">
+        <label for="sentra">Nama Sentra / COU</label>
+        <select id="sentra"><option value="">Memuat daftar sentra…</option></select>
+      </div>
+      <a class="btn btn-sm" href="profil-form.html" id="linkEdit"><svg class="ic"><use href="#i-edit"/></svg> Isi / ubah profil</a>
+    </section>
+
+    <div id="out"></div>
+  </div>
+</main>
+
+<script src="api.js"></script>
+<script>
+(function () {
+  "use strict";
+  const A = window.SentraAPI, { esc, icon, fmtNum, fmtRasio, rasioInfo } = A, $ = (s) => document.querySelector(s);
+  let sentras = [], profil = {};
+
+  function emptyState() {
+    $("#out").innerHTML = `<div class="card pt-empty"><div class="ring">${icon("building")}</div><b>Pilih COU terlebih dahulu</b>Profil akan tampil di sini setelah Anda memilih nama sentra.</div>`;
+  }
+  const metric = (ic, tone, l, v, sub) =>
+    `<div class="metric"><span class="m-ico ${tone}">${icon(ic)}</span><div><div class="m-label">${l}</div><div class="m-value">${v}</div>${sub ? `<div class="m-sub">${sub}</div>` : ""}</div></div>`;
+
+  function show(id) {
+    const s = sentras.find((x) => String(x.id) === id);
+    if (!s) return emptyState();
+    const p = profil[String(s.id).toUpperCase()] || {};
+    const alamat = String(p.alamat || "").trim();
+    const photo = p.gambar_url
+      ? `<img src="${esc(p.gambar_url)}" alt="Kantor ${esc(s.nama)}" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=&quot;none&quot;>${icon("building")}Gambar tidak dapat dimuat</div>'">`
+      : `<div class="none">${icon("building")}Gambar kantor belum diunggah</div>`;
+    $("#out").innerHTML = `
+      <article class="card pt-card">
+        <div class="pt-photo">${photo}</div>
+        <div class="pt-body">
+          <div class="pt-title">
+            <h3>${esc(s.nama)}</h3>
+            <div class="badges">${s.divisi ? `<span class="chip gold">${esc(s.divisi)}</span>` : ""}${s.region ? `<span class="chip blue">Region ${s.region}</span>` : ""}</div>
+          </div>
+          <div class="pt-addr${alamat ? "" : " empty"}">${icon("pin")}<div>${alamat ? esc(alamat).replace(/\n/g, "<br>") : "Alamat belum diisi. Lengkapi lewat menu Profil COU › Form Profil."}</div></div>
+
+          <div class="pt-sec">Ringkasan</div>
+          <div class="pt-grid">
+            ${metric("cash", "gold", "Jumlah Kelolaan", fmtNum(s.kelolaan), s.banks ? fmtNum(s.banks) + " user / bank" : "")}
+            ${metric("users", "violet", "Jumlah Pegawai", fmtNum(s.pegawai), "personil")}
+          </div>
+
+          <div class="pt-sec">Infrastruktur</div>
+          <div class="pt-grid g3">
+            ${metric("truck", "blue", "Mobil CR FLM", fmtNum(s.mobil), "unit")}
+            ${metric("calc", "gold", "Mesin Hitung", fmtNum(s.mesinHitung), "unit")}
+            ${metric("layers", "teal", "Mesin Sortir", fmtNum(s.mesinSortir), "unit")}
+          </div>
+          <p class="pt-note">Rasio Pegawai : Kelolaan ${fmtRasio(s.kelolaan, s.pegawai)} · ${esc(rasioInfo(s.kelolaan, s.pegawai).status)}</p>
+        </div>
+      </article>`;
+  }
+
+  function fillSelect(keep) {
+    $("#sentra").innerHTML = '<option value="">— Pilih COU —</option>' +
+      sentras.map((s) => `<option value="${esc(s.id)}">${esc(s.nama)}</option>`).join("");
+    if (keep && sentras.some((s) => String(s.id) === keep)) $("#sentra").value = keep;
+  }
+  async function load() {
+    const btn = $("#refresh"); btn.disabled = true;
+    const keep = $("#sentra").value;
+    try {
+      const { raw, demo } = await A.loadData();
+      sentras = A.aggregate(raw).sentras.slice().sort((a, b) => String(a.nama).localeCompare(String(b.nama), "id"));
+      profil = A.profilMap(raw);
+      const hh = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+      $("#status").innerHTML = demo ? '<span class="dot demo"></span> Mode demo' : '<span class="dot"></span> Live · Google Sheets · ' + hh;
+    } catch (e) { A.toast("Gagal memuat data: " + e.message, "error"); $("#status").innerHTML = '<span class="dot demo"></span> Gagal memuat'; }
+    fillSelect(keep); show($("#sentra").value); btn.disabled = false;
+  }
+  $("#sentra").addEventListener("change", () => show($("#sentra").value));
+  $("#refresh").addEventListener("click", load);
+  emptyState(); load();
+})();
+</script>
+</body>
+</html>
