@@ -114,8 +114,9 @@
     if (!s) return emptyState();
     const p = profil[String(s.id).toUpperCase()] || {};
     const alamat = String(p.alamat || "").trim();
-    const photo = p.gambar_url
-      ? `<img src="${esc(p.gambar_url)}" alt="Kantor ${esc(s.nama)}" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=&quot;none&quot;>${icon("building")}Gambar tidak dapat dimuat</div>'">`
+    const srcs = A.profilImgSources(p);
+    const photo = srcs.length
+      ? `<img id="ptImg" src="${esc(srcs[0])}" alt="Kantor ${esc(s.nama)}" referrerpolicy="no-referrer">`
       : `<div class="none">${icon("building")}Gambar kantor belum diunggah</div>`;
     $("#out").innerHTML = `
       <article class="card pt-card">
@@ -142,6 +143,14 @@
           <p class="pt-note">Rasio Pegawai : Kelolaan ${fmtRasio(s.kelolaan, s.pegawai)} · ${esc(rasioInfo(s.kelolaan, s.pegawai).status)}</p>
         </div>
       </article>`;
+    const im = $("#ptImg");
+    if (im) {
+      let n = 0;
+      im.addEventListener("error", () => {
+        if (++n < srcs.length) { im.src = srcs[n]; return; }
+        im.parentElement.innerHTML = `<div class="none">${icon("building")}Gambar tidak dapat dimuat<br><small>Pastikan file di Google Drive dibagikan &ldquo;Anyone with the link&rdquo;</small></div>`;
+      });
+    }
   }
 
   function fillSelect(keep) {
