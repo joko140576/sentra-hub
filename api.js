@@ -374,6 +374,19 @@
     ((raw && raw.profil) || []).forEach((r) => { const k = sid(r.id_sentra); if (k) m[k] = r; });
     return m;
   }
+  // daftar URL gambar yang dicoba berurutan (Drive kadang menolak salah satu bentuk URL)
+  function profilImgSources(p) {
+    p = p || {};
+    const id = String(p.gambar_id || "").trim(), out = [];
+    if (id) {
+      out.push("https://lh3.googleusercontent.com/d/" + id + "=w1200");
+      out.push("https://drive.google.com/thumbnail?id=" + id + "&sz=w1200");
+      out.push("https://drive.google.com/uc?export=view&id=" + id);
+    }
+    const u = String(p.gambar_url || "").trim();
+    if (u && out.indexOf(u) < 0) out.push(u);
+    return out;
+  }
   // gambar -> data URL JPEG (maks. sisi 1200px) agar ringan dikirim ke Apps Script
   function imageToDataUrl(file, maxSide, quality) {
     return new Promise((resolve, reject) => {
@@ -583,5 +596,5 @@
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind); else bind();
   })();
 
-  window.SentraAPI = { CONFIG, getSession, login, logout, CITIES, findCity, loadData, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, saveProfil, profilMap, imageToDataUrl, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
+  window.SentraAPI = { CONFIG, getSession, login, logout, CITIES, findCity, loadData, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, saveProfil, profilMap, profilImgSources, imageToDataUrl, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
 })();
