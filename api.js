@@ -9,7 +9,7 @@
   "use strict";
 
   const CONFIG = {
-    GAS_URL: "https://script.google.com/macros/s/AKfycbwsqrt9S1SRsVHKmB365LQLX_xgAHY1eTwyB5gVeuCkBPIJePq27RngNV397NdKUMDwSg/exec"
+    GAS_URL: "https://script.google.com/macros/s/AKfycbwnfWjkzU3TVhfXII57qFrB0kdpNNFQMAR0psVyJiNDdxSxB9Atsc0cv6FCFzG2jqGtdQ/exec"
   };
 
   // ---------- sesi login ----------
@@ -272,6 +272,21 @@
     return { raw: j, demo: false };
   }
 
+  // ---------- PJPUR ----------
+  async function loadPjpur() {
+    if (!CONFIG.GAS_URL) {   // mode demo
+      return { demo: true, headers: ["COU", "Nomor PJPUR", "Link PDF"],
+        rows: [["COU Jakarta Pusat", "PJPUR-001", ""], ["COU Bandung", "PJPUR-002", ""]],
+        links: [["", "", "https://example.com/a.pdf"], ["", "", "https://example.com/b.pdf"]] };
+    }
+    const url = CONFIG.GAS_URL + (CONFIG.GAS_URL.includes("?") ? "&" : "?") + "action=pjpur&token=" + encodeURIComponent(tokenVal()) + "&_=" + Date.now();
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const j = await res.json(); authCheck(j);
+    if (!j.ok) throw new Error(j.error || "Gagal memuat PJPUR");
+    return { headers: j.headers || [], rows: j.rows || [], links: j.links || [], demo: false };
+  }
+
   async function submitData(payload) {
     payload.action = "submit";
     if (!CONFIG.GAS_URL) return { ...demoSubmit(payload), demo: true };
@@ -513,7 +528,8 @@
     trash: '<path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6"/>',
     chev: '<path d="m6 9 6 6 6-6"/>',
     info: '<circle cx="12" cy="12" r="10"/><path d="M12 11v5M12 7.5h.01"/>',
-    search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>'
+    search: '<circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/>',
+    file: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8l-5-5Z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'
   };
   function mountSprite() {
     if (document.getElementById("sentra-sprite")) return;
@@ -596,5 +612,5 @@
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind); else bind();
   })();
 
-  window.SentraAPI = { CONFIG, getSession, login, logout, CITIES, findCity, loadData, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, saveProfil, profilMap, profilImgSources, imageToDataUrl, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
+  window.SentraAPI = { CONFIG, getSession, login, logout, CITIES, findCity, loadData, loadPjpur, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, saveProfil, profilMap, profilImgSources, imageToDataUrl, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
 })();

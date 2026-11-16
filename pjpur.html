@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sentra Hub – PJPUR</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2316277a'/%3E%3Cstop offset='1' stop-color='%232748d8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3Ctext x='32' y='43' font-size='34' font-weight='800' text-anchor='middle' fill='%23ffe3a1' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+.pj-wrap{padding:26px 0 60px}
+.pj-head{margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+
+/* kartu tabel */
+.pj-card{overflow:hidden;border-radius:22px;box-shadow:0 18px 50px rgba(14,26,58,.08)}
+.pj-bar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:18px 20px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,#fff,#f9fafe)}
+.pj-search{position:relative;flex:1 1 300px;max-width:460px}
+.pj-search .ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:18px;height:18px;color:var(--muted);pointer-events:none}
+.pj-search input{width:100%;padding:12px 40px 12px 42px;border-radius:14px;border:1px solid var(--line2);background:#fff;color:var(--ink);font:600 14px 'Plus Jakarta Sans',sans-serif;outline:none;transition:.2s}
+.pj-search input:hover{border-color:#b4c0e0}
+.pj-search input:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(39,72,216,.13)}
+.pj-search input::placeholder{color:var(--muted);font-weight:500}
+.pj-clear{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:none;border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;display:grid;place-items:center}
+.pj-clear:hover{background:var(--blue-soft);color:var(--blue)}
+.pj-clear .ic{position:static;transform:none;width:15px;height:15px;color:inherit}
+.pj-clear[hidden]{display:none}
+.pj-meta{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink2);font-weight:600}
+.pj-meta select{padding:8px 10px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--ink);font:600 13px 'Plus Jakarta Sans',sans-serif}
+
+/* tabel */
+.pj-scroll{overflow:auto;max-height:68vh;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+.pj-table{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px;min-width:640px}
+.pj-table thead th{position:sticky;top:0;z-index:2;text-align:left;padding:14px 16px;white-space:nowrap;
+  font:700 11.5px 'Plus Jakarta Sans',sans-serif;letter-spacing:.09em;text-transform:uppercase;color:#fff;
+  background:linear-gradient(135deg,#0b1535,#16277a);border-bottom:3px solid var(--gold2);cursor:pointer;user-select:none}
+.pj-table thead th:first-child{border-top-left-radius:0}
+.pj-table thead th.nosort{cursor:default}
+.pj-table thead th .arr{display:inline-block;margin-left:6px;opacity:.35;font-size:10px}
+.pj-table thead th.sorted .arr{opacity:1;color:#ffe3a1}
+.pj-table thead th:hover:not(.nosort){background:linear-gradient(135deg,#101e4d,#1d34a0)}
+.pj-table tbody td{padding:13px 16px;border-bottom:1px solid var(--line);color:var(--ink);vertical-align:middle;white-space:nowrap;background:#fff;transition:background .15s}
+.pj-table tbody tr:nth-child(even) td{background:#f9fafe}
+.pj-table tbody tr:hover td{background:var(--blue-soft)}
+.pj-table td.wrap{white-space:normal;min-width:240px;max-width:380px;line-height:1.45}
+.pj-table td.num{width:56px;color:var(--muted);font-weight:700;font-variant-numeric:tabular-nums}
+.pj-table td.cou{font-weight:700;color:var(--navy)}
+.pj-table td.empty-cell{color:#b3bcd2}
+mark{background:var(--gold-soft);color:#6f4e0b;border-radius:4px;padding:0 2px;box-shadow:0 0 0 2px var(--gold-soft)}
+
+/* tombol link PDF */
+.pdf-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:800;color:#2a1b00;
+  background:linear-gradient(135deg,#ffe3a1,var(--gold2) 60%,#d9a13a);box-shadow:0 6px 16px rgba(233,185,90,.4);transition:.2s;text-decoration:none}
+.pdf-btn:hover{transform:translateY(-1px);filter:brightness(1.05);box-shadow:0 10px 22px rgba(233,185,90,.5)}
+.pdf-btn .ic{width:15px;height:15px}
+.lnk{color:var(--blue);font-weight:700;text-decoration:underline;text-underline-offset:3px}
+
+/* footer tabel */
+.pj-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:14px 20px;border-top:1px solid var(--line);background:#f9fafe;font-size:13px;color:var(--ink2);font-weight:600}
+.pj-pager{display:flex;gap:6px;align-items:center}
+.pj-pager button{min-width:36px;height:36px;padding:0 10px;border-radius:10px;border:1px solid var(--line2);background:#fff;color:var(--ink);font:700 13px 'Plus Jakarta Sans',sans-serif;cursor:pointer;transition:.2s}
+.pj-pager button:hover:not(:disabled){border-color:var(--blue);color:var(--blue)}
+.pj-pager button.on{background:linear-gradient(135deg,var(--blue2),#1c36b4);border-color:transparent;color:#fff}
+.pj-pager button:disabled{opacity:.4;cursor:not-allowed}
+.pj-state{padding:56px 20px;text-align:center;color:var(--muted)}
+.pj-state b{display:block;color:var(--navy);font:700 17px 'Sora',sans-serif;margin-bottom:4px}
+.spin{width:30px;height:30px;border-radius:50%;border:3px solid var(--line2);border-top-color:var(--blue);margin:0 auto 12px;animation:pjspin .8s linear infinite}
+@keyframes pjspin{to{transform:rotate(360deg)}}
+</style>
+<style id="auth-hide">html{visibility:hidden}</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-in">
+    <a class="brand" href="index.html#top">
+      <div class="brand-mark"><svg class="ic"><use href="#i-bank"/></svg></div>
+      <div class="t"><span class="t">SENTRA HUB</span><small>Cash Operations</small></div>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#peta"><svg class="ic"><use href="#i-map"/></svg><span class="lbl">Peta Sentra</span></a>
+      <a href="index.html#dashboard"><svg class="ic"><use href="#i-chart"/></svg><span class="lbl">Dashboard</span></a>
+      <a href="infocou.html"><svg class="ic"><use href="#i-info"/></svg><span class="lbl">Info COU</span></a>
+      <a href="pjpur.html" class="active"><svg class="ic"><use href="#i-file"/></svg><span class="lbl">PJPUR</span></a>
+      <div class="nav-dd">
+        <button type="button" class="nav-dd-btn" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-building"/></svg><span class="lbl">Profil COU</span><svg class="ic caret"><use href="#i-chev"/></svg></button>
+        <div class="nav-dd-menu" role="menu">
+          <a href="profil-form.html" role="menuitem"><svg class="ic"><use href="#i-edit"/></svg><span class="lbl">Form Profil</span></a>
+          <a href="profil-tampil.html" role="menuitem"><svg class="ic"><use href="#i-eye"/></svg><span class="lbl">Tampilkan Profil</span></a>
+        </div>
+      </div>
+      <div class="nav-dd">
+        <button type="button" class="nav-dd-btn" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-edit"/></svg><span class="lbl">Edit</span><svg class="ic caret"><use href="#i-chev"/></svg></button>
+        <div class="nav-dd-menu" role="menu">
+          <a href="edit.html#kelolaan" role="menuitem"><svg class="ic"><use href="#i-bank"/></svg><span class="lbl">Edit Kelolaan</span></a>
+          <a href="edit.html#personil" role="menuitem"><svg class="ic"><use href="#i-users"/></svg><span class="lbl">Edit Personil</span></a>
+          <a href="edit.html#infrastruktur" role="menuitem"><svg class="ic"><use href="#i-truck"/></svg><span class="lbl">Edit Infrastruktur</span></a>
+        </div>
+      </div>
+      <a href="form.html" class="cta"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Input Data</span></a>
+      <a href="#" id="btnLogout" title="Keluar"><svg class="ic"><use href="#i-logout"/></svg><span class="lbl">Keluar</span></a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="pj-wrap">
+    <div class="pj-head">
+      <div>
+        <span class="eyebrow"><svg class="ic"><use href="#i-file"/></svg> PJPUR</span>
+        <h2 class="title">Data PJPUR</h2>
+        <p class="lead-dark">Daftar lengkap PJPUR per COU. Klik tombol pada kolom link untuk membuka dokumen PDF.</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <span class="chip" id="status"><span class="dot demo"></span> Memuat…</span>
+        <button class="btn btn-sm" id="refresh" type="button"><svg class="ic"><use href="#i-refresh"/></svg> Muat ulang</button>
+      </div>
+    </div>
+
+    <section class="card pj-card">
+      <div class="pj-bar">
+        <div class="pj-search">
+          <svg class="ic"><use href="#i-search"/></svg>
+          <input id="q" type="search" placeholder="Cari berdasarkan COU…" autocomplete="off" aria-label="Cari COU">
+          <button type="button" class="pj-clear" id="qClear" hidden aria-label="Hapus pencarian"><svg class="ic"><use href="#i-x"/></svg></button>
+        </div>
+        <div class="pj-meta">
+          <span id="count">–</span>
+          <label>Baris:
+            <select id="ps"><option>10</option><option selected>25</option><option>50</option><option>100</option></select>
+          </label>
+        </div>
+      </div>
+      <div class="pj-scroll" id="scroll">
+        <table class="pj-table">
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div id="state" class="pj-state"><div class="spin"></div><b>Memuat data…</b></div>
+      </div>
+      <div class="pj-foot">
+        <span id="info">–</span>
+        <div class="pj-pager" id="pager"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script src="api.js"></script>
+<script>
+(function () {
+  "use strict";
+  const A = window.SentraAPI, { esc, icon } = A, $ = (s) => document.querySelector(s);
+
+  let H = [], ROWS = [], view = [];
+  let couC = -1, linkC = new Set(), wrapC = new Set();
+  let page = 1, PS = 25, sortC = -1, sortD = 1;
+
+  const isUrl = (v) => /^https?:\/\//i.test(String(v || "").trim());
+  const isLinkHead = (h) => /link|url|pdf|dokumen|file|lampiran/i.test(h);
+
+  function hl(text, q) {
+    const s = String(text == null ? "" : text), e = esc(s);
+    if (!q) return e;
+    const i = s.toLowerCase().indexOf(q);
+    if (i < 0) return e;
+    return esc(s.slice(0, i)) + "<mark>" + esc(s.slice(i, i + q.length)) + "</mark>" + esc(s.slice(i + q.length));
+  }
+
+  function analyse() {
+    // kolom COU = header yang memuat "cou", jika tidak ada pakai kolom nama/sentra/lokasi/kantor
+    couC = H.findIndex((h) => /\bcou\b/i.test(h));
+    if (couC < 0) couC = H.findIndex((h) => /sentra|nama|lokasi|kantor/i.test(h));
+    $("#q").placeholder = couC >= 0 ? "Cari berdasarkan COU…" : "Cari data…";
+    linkC = new Set(); wrapC = new Set();
+    H.forEach((h, c) => {
+      const filled = ROWS.filter((r) => String(r.cells[c] || "").trim() || r.links[c]);
+      const withUrl = filled.filter((r) => r.links[c] || isUrl(r.cells[c])).length;
+      if (isLinkHead(h) || (filled.length && withUrl / filled.length >= 0.5)) linkC.add(c);
+      else if (ROWS.some((r) => String(r.cells[c] || "").length > 42)) wrapC.add(c);
+    });
+  }
+
+  function renderHead() {
+    $("#thead").innerHTML = "<tr><th class='nosort'>No</th>" + H.map((h, c) =>
+      `<th data-c="${c}" class="${linkC.has(c) ? "nosort" : ""}${sortC === c ? " sorted" : ""}">${esc(h)}${linkC.has(c) ? "" : `<span class="arr">${sortC === c ? (sortD > 0 ? "▲" : "▼") : "↕"}</span>`}</th>`).join("") + "</tr>";
+  }
+
+  function cellHtml(r, c, q) {
+    const v = String(r.cells[c] == null ? "" : r.cells[c]).trim();
+    const url = r.links[c] || (isUrl(v) ? v : "");
+    if (linkC.has(c)) {
+      return url
+        ? `<a class="pdf-btn" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${icon("file")} Buka PDF</a>`
+        : `<span class="empty-cell">–</span>`;
+    }
+    if (!v) return `<span class="empty-cell">–</span>`;
+    const body = c === couC ? hl(v, q) : esc(v);
+    return url ? `<a class="lnk" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${body}</a>` : body;
+  }
+
+  function apply() {
+    const q = $("#q").value.trim().toLowerCase();
+    $("#qClear").hidden = !q;
+    view = ROWS.filter((r) => {
+      if (!q) return true;
+      if (couC >= 0) return String(r.cells[couC] || "").toLowerCase().includes(q);
+      return r.cells.some((x) => String(x).toLowerCase().includes(q));
+    });
+    if (sortC >= 0) {
+      view = view.slice().sort((a, b) => sortD * String(a.cells[sortC] || "").localeCompare(String(b.cells[sortC] || ""), "id", { numeric: true, sensitivity: "base" }));
+    }
+    const pages = Math.max(1, Math.ceil(view.length / PS));
+    if (page > pages) page = pages;
+    renderHead();
+    const start = (page - 1) * PS, slice = view.slice(start, start + PS);
+
+    $("#tbody").innerHTML = slice.map((r, i) =>
+      `<tr><td class="num">${start + i + 1}</td>` + H.map((h, c) => {
+        const cls = (c === couC ? "cou " : "") + (wrapC.has(c) ? "wrap" : "");
+        return `<td class="${cls.trim()}">${cellHtml(r, c, q)}</td>`;
+      }).join("") + "</tr>").join("");
+
+    const st = $("#state");
+    if (!view.length) {
+      st.hidden = false;
+      st.innerHTML = `<b>${q ? "COU tidak ditemukan" : "Belum ada data"}</b>${q ? "Coba kata kunci lain." : "Sheet pjpur masih kosong."}`;
+    } else st.hidden = true;
+
+    $("#count").textContent = view.length + " dari " + ROWS.length + " data";
+    $("#info").textContent = view.length ? `Menampilkan ${start + 1}–${Math.min(start + PS, view.length)} dari ${view.length}` : "Tidak ada data";
+    renderPager(pages);
+  }
+
+  function renderPager(pages) {
+    const el = $("#pager");
+    if (pages <= 1) { el.innerHTML = ""; return; }
+    const nums = new Set([1, pages, page - 1, page, page + 1]);
+    const list = [...nums].filter((n) => n >= 1 && n <= pages).sort((a, b) => a - b);
+    let html = `<button data-p="${page - 1}" ${page === 1 ? "disabled" : ""} aria-label="Sebelumnya">‹</button>`, prev = 0;
+    list.forEach((n) => {
+      if (n - prev > 1) html += `<span style="padding:0 2px">…</span>`;
+      html += `<button data-p="${n}" class="${n === page ? "on" : ""}">${n}</button>`; prev = n;
+    });
+    html += `<button data-p="${page + 1}" ${page === pages ? "disabled" : ""} aria-label="Berikutnya">›</button>`;
+    el.innerHTML = html;
+  }
+
+  $("#pager").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-p]"); if (!b || b.disabled) return;
+    page = Number(b.dataset.p); apply(); $("#scroll").scrollTop = 0;
+  });
+  $("#thead").addEventListener("click", (e) => {
+    const th = e.target.closest("th[data-c]"); if (!th || th.classList.contains("nosort")) return;
+    const c = Number(th.dataset.c);
+    if (sortC === c) sortD = -sortD; else { sortC = c; sortD = 1; }
+    page = 1; apply();
+  });
+  $("#q").addEventListener("input", () => { page = 1; apply(); });
+  $("#qClear").addEventListener("click", () => { $("#q").value = ""; page = 1; apply(); $("#q").focus(); });
+  $("#ps").addEventListener("change", (e) => { PS = Number(e.target.value); page = 1; apply(); });
+
+  async function load() {
+    const btn = $("#refresh"); btn.disabled = true;
+    $("#state").hidden = false; $("#state").innerHTML = '<div class="spin"></div><b>Memuat data…</b>';
+    try {
+      const { headers, rows, links, demo } = await A.loadPjpur();
+      H = headers;
+      ROWS = rows.map((cells, i) => ({ cells, links: links[i] || [] }));
+      analyse();
+      const hh = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+      $("#status").innerHTML = demo ? '<span class="dot demo"></span> Mode demo' : '<span class="dot"></span> Live · Google Sheets · ' + hh;
+      apply();
+    } catch (err) {
+      $("#status").innerHTML = '<span class="dot demo"></span> Gagal memuat';
+      $("#state").innerHTML = `<b>Gagal memuat data</b>${esc(err.message)}`;
+      A.toast("Gagal memuat data: " + err.message, "error");
+    }
+    btn.disabled = false;
+  }
+  $("#refresh").addEventListener("click", load);
+  load();
+})();
+</script>
+</body>
+</html>
