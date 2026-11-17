@@ -9,7 +9,7 @@
   "use strict";
 
   const CONFIG = {
-    GAS_URL: "https://script.google.com/macros/s/AKfycbwnfWjkzU3TVhfXII57qFrB0kdpNNFQMAR0psVyJiNDdxSxB9Atsc0cv6FCFzG2jqGtdQ/exec"
+    GAS_URL: "https://script.google.com/macros/s/AKfycbzcNCsaL9w45wZ3TRUaVVbTCO8KL1Eb9dcUcwqgjfWO_heSaj8g_IXbGtDbJ81KPVuy0Q/exec"
   };
 
   // ---------- sesi login ----------
@@ -58,7 +58,7 @@
   { "kota": "Rantau Prapat", "lat": 2.1000, "long": 99.8333 },
   { "kota": "Bandar Lampung", "lat": -5.4292, "long": 105.2625 },
   { "kota": "Batam", "lat": 1.1301, "long": 104.0529 },
-  { "kota": "Bukit Tinggi", "lat": -0.3055, "long": 100.3692 },
+  { "kota": "Bukittinggi", "lat": -0.3055, "long": 100.3692 },
   { "kota": "Dumai", "lat": 1.6667, "long": 101.4500 },
   { "kota": "Jambi", "lat": -1.6101, "long": 103.6131 },
   { "kota": "Muara Bungo", "lat": -1.4833, "long": 102.1167 },
@@ -100,6 +100,7 @@
   { "kota": "Malang", "lat": -7.9666, "long": 112.6326 },
   { "kota": "Probolinggo", "lat": -7.7543, "long": 113.2159 },
   { "kota": "Sidoarjo", "lat": -7.4478, "long": 112.7183 },
+  { "kota": "Pasuruan","lat": -7.6453,"long": 112.9075 },
   { "kota": "Surabaya 1", "lat": -7.2575, "long": 112.7521 },
   { "kota": "Surabaya 2", "lat": -7.2905, "long": 112.7340 },
   { "kota": "Tulungagung", "lat": -8.0654, "long": 111.9025 },
@@ -120,12 +121,54 @@
   { "kota": "Sumbawa", "lat": -8.4900, "long": 117.4200 },
   { "kota": "Kendari", "lat": -3.9985, "long": 122.5129 },
   { "kota": "Makassar", "lat": -5.1477, "long": 119.4327 },
-  { "kota": "Pare Pare", "lat": -4.0135, "long": 119.6255 },
+  { "kota": "ParePare", "lat": -4.0135, "long": 119.6255 },
   { "kota": "Gorontalo", "lat": 0.5435, "long": 123.0568 },
   { "kota": "Jayapura", "lat": -2.5337, "long": 140.7181 },
   { "kota": "Manado", "lat": 1.4748, "long": 124.8421 },
   { "kota": "Palu", "lat": -0.8917, "long": 119.8707 },
-  { "kota": "Sorong", "lat": -0.8762, "long": 131.2558 }
+  { "kota": "Sorong", "lat": -0.8762, "long": 131.2558 },
+  { "kota":"Gresik","lat":-7.156576,"long":112.655472},
+  { "kota":"Jombang","lat":-7.538453,"long":112.237988},
+  { "kota":"Karawang","lat":-6.304201,"long":107.307897},
+  { "kota":"Tanjung Priok","lat":-6.132055,"long":106.871483},
+  { "kota":"Ambon","lat":-3.654703,"long":128.190643},
+  { "kota":"Balige","lat":2.333333,"long":99.066667},
+  { "kota":"Banjarbaru","lat":-3.442000,"long":114.833000},
+  { "kota":"Batulicin","lat":-3.451000,"long":116.000000},
+  { "kota":"Baturaja","lat":-4.128000,"long":104.166000},
+  { "kota":"Baubau","lat":-5.462030,"long":122.605766},
+  { "kota":"Biak","lat":-1.176000,"long":136.082000},
+  { "kota":"Bulukumba","lat":-5.556000,"long":120.199000},
+  { "kota":"Ende","lat":-8.843200,"long":121.662300},
+  { "kota":"Gunung Sitoli","lat":1.288800,"long":97.614300},
+  { "kota":"Ketapang","lat":-1.850000,"long":109.983333},
+  { "kota":"Kotabaru","lat":-3.294000,"long":116.165000},
+  { "kota":"Kotabumi","lat":-4.825000,"long":104.879000},
+  { "kota":"Kotamobagu","lat":0.732400,"long":124.317000},
+  { "kota":"Kuningan","lat":-6.982000,"long":108.483000},
+  { "kota":"Lubuk Linggau","lat":-3.296700,"long":102.861700},
+  { "kota":"Luwuk","lat":-0.951600,"long":122.787500},
+  { "kota":"Mamuju","lat":-2.674800,"long":118.888500},
+  { "kota":"Manokwari","lat":-0.861500,"long":134.062000},
+  { "kota":"Maumere","lat":-8.619900,"long":122.211100},
+  { "kota":"Merauke","lat":-8.493200,"long":140.401800},
+  { "kota":"Muara Teweh","lat":-0.949200,"long":114.894500},
+  { "kota":"Nunukan","lat":4.136700,"long":117.668000},
+  { "kota":"Palopo","lat":-2.994494,"long":120.195465},
+  { "kota":"Pangkalanbun","lat":-2.683200,"long":111.625900},
+  { "kota":"Polewali","lat":-3.432400,"long":119.343500},
+  { "kota":"Selat Panjang","lat":1.003000,"long":102.705000},
+  { "kota":"Sengkang","lat":-4.127900,"long":120.029700},
+  { "kota":"Singaraja","lat":-8.112000,"long":115.088200},
+  { "kota":"Singkawang","lat":0.906000,"long":108.987200},
+  { "kota":"Sintang","lat":0.063600,"long":111.495000},
+  { "kota":"Solok","lat":-0.803000,"long":100.654000},
+  { "kota":"Sungai Penuh","lat":-2.063100,"long":101.391000},
+  { "kota":"Tanjung Redep","lat":2.154900,"long":117.498000},
+  { "kota":"Tanjung Selor","lat":2.837500,"long":117.365300},
+  { "kota":"Tegal","lat":-6.869400,"long":109.140200},
+  { "kota":"Tembilahan","lat":-0.322800,"long":103.160000},
+  { "kota":"Ternate","lat":0.790700,"long":127.384200}
 
   ];
 
@@ -227,7 +270,7 @@
     const raw = { sentra: [], kelolaan: [], personil: [], infrastruktur: [] };
     SEED.forEach((s, i) => {
       const id = "S" + String(i + 1).padStart(2, "0");
-      raw.sentra.push({ id, nama_sentra: s.nama, divisi: s.divisi, region: s.region, kota: s.kota });
+      raw.sentra.push({ id, nama_sentra: s.nama, divisi: s.divisi, region: s.region, kota: s.kota, kantor: "COU" });
       s.banks.forEach((b) => raw.kelolaan.push({ id_sentra: id, nama_sentra: s.nama, nama_bank: b[0], bisnis: b[1], jumlah_kelolaan: b[2] }));
       const p = s.personil;
       raw.personil.push({ id_sentra: id, nama_sentra: s.nama, kasir: p[0], custody_restock: p[1], custody_flm: p[2], custody_driver: p[3], admin: p[4], manager: p[5], asmen: p[6] });
@@ -470,8 +513,11 @@
       };
       let pegawai = Object.values(pers).reduce((a, b) => a + b, 0);
       if (!pegawai) pegawai = num(p.total_pegawai);
+      // kolom header "kantor" di sheet Sentra: COU atau remote (toleran: kantor / tipe_kantor / jenis_kantor)
+      const kantorRaw = String(s.kantor != null ? s.kantor : (s.tipe_kantor != null ? s.tipe_kantor : (s.jenis_kantor != null ? s.jenis_kantor : ""))).trim().toLowerCase();
+      const kantor = kantorRaw === "cou" ? "cou" : (kantorRaw === "remote" ? "remote" : "");
       return {
-        id: s.id, nama: s.nama_sentra, divisi: String(s.divisi || "").trim().replace(/^opr\s*(\d)/i, "Opr $1"), region: parseInt(String(s.region == null ? "" : s.region).replace(/\D/g, ""), 10) || 0, kota: s.kota || "",
+        id: s.id, nama: s.nama_sentra, kantor, divisi: String(s.divisi || "").trim().replace(/^opr\s*(\d)/i, "Opr $1"), region: parseInt(String(s.region == null ? "" : s.region).replace(/\D/g, ""), 10) || 0, kota: s.kota || "",
         banks: bankSet.size, bankList: [...bankSet.values()], kelolaan, byBisnis, pers, pegawai,
         rasio: pegawai ? kelolaan / pegawai : 0,
         mesinHitung: num(i.mesin_hitung), mesinSortir: num(i.mesin_sortir), mobil: num(i.mobil_cr_flm)
@@ -489,7 +535,11 @@
     const hdr = new Set((raw0.banks || []).map((b) => nkey(b)).filter(Boolean));
     const totalBanks = hdr.size || allBanks.size;
     const totals = {
-      banks: totalBanks, relasi, sentra: sentras.length, kelolaan: sum((s) => s.kelolaan), pegawai: sum((s) => s.pegawai),
+      banks: totalBanks, relasi, sentra: sentras.length,
+      sentraCou: sentras.filter((s) => s.kantor === "cou").length,
+      sentraRemote: sentras.filter((s) => s.kantor === "remote").length,
+      sentraLain: sentras.filter((s) => !s.kantor).length,
+      kelolaan: sum((s) => s.kelolaan), pegawai: sum((s) => s.pegawai),
       mesinHitung: sum((s) => s.mesinHitung), mesinSortir: sum((s) => s.mesinSortir), mobil: sum((s) => s.mobil)
     };
     const byCou = [...sentras].sort((a, b) => b.kelolaan - a.kelolaan);

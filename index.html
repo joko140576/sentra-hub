@@ -134,6 +134,7 @@
         <div class="kpi-top"><div class="k-label">Jumlah Sentra / COU</div><span class="ico teal"><svg class="ic"><use href="#i-building"/></svg></span></div>
         <div class="k-value" id="kSentra">–</div>
         <div class="k-sub" id="kSentraSub"></div>
+        <div class="kantor-split" id="kSentraSplit"></div>
       </div>
       <div class="card kpi">
         <div class="kpi-top"><div class="k-label">Total Pegawai</div><span class="ico violet"><svg class="ic"><use href="#i-users"/></svg></span></div>
@@ -319,6 +320,10 @@
     $("#kKelSub").textContent = t.sentra ? `Rata-rata ${fmtNum(t.kelolaan / t.sentra)} per sentra` : "";
     $("#kBankSub").textContent = `bank unik terdaftar di sheet Kelolaan`;
     $("#kSentraSub").textContent = "tersebar di 10 region";
+    $("#kSentraSplit").innerHTML =
+      `<span class="kantor-pill cou"><b>${fmtNum(t.sentraCou)}</b> COU</span>` +
+      `<span class="kantor-pill remote"><b>${fmtNum(t.sentraRemote)}</b> Remote</span>` +
+      (t.sentraLain ? `<span class="kantor-pill lain"><b>${fmtNum(t.sentraLain)}</b> Belum diisi</span>` : "");
     $("#kPegSub").innerHTML = t.pegawai ? `Rasio nasional ${fmtRasio(t.kelolaan, t.pegawai)}` : "";
 
     const top = agg.byCou[0];

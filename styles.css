@@ -326,3 +326,11 @@ table.dt td b{color:var(--navy)}
 .mrow .icon-btn{margin-top:22px}
 .mrow .hint{margin-top:2px}
 @media(max-width:560px){.mrow{grid-template-columns:1fr 1fr 46px}}
+
+
+/* jumlah COU / Remote pada kartu Jumlah Sentra */
+.kantor-split{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.kantor-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;background:rgba(14,159,148,.12);color:#0e9f94}
+.kantor-pill b{font-size:15px;font-weight:800}
+.kantor-pill.remote{background:rgba(124,92,255,.12);color:#6d4de6}
+.kantor-pill.lain{background:rgba(120,130,150,.15);color:#5b6475}
