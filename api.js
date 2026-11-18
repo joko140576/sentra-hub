@@ -425,62 +425,45 @@
   }
 
 
-  // ---------- Profil COU (menu Profil COU > Form Profil / Tampilkan Profil) ----------
-  // Data profil (alamat + gambar kantor) ada di sheet "ProfilCOU"; dikirim backend lewat raw.profil.
+  // ---------- Profil COU (menu Profil COU > Tampilkan Profil) ----------
+  // Sumber data: sheet "ProfilCOU" (kolom: id_sentra, alamat, gambar url, ...). Header dinormalisasi
+  // (huruf besar/kecil, spasi, underscore diabaikan) sehingga "Id_sentra", "Gambar URL", "gambar_url" sama saja.
+  const pick1 = (o, keys) => { for (const k of keys) if (o[k] !== undefined && String(o[k]).trim() !== "") return String(o[k]).trim(); return ""; };
+  function profilRows(raw) {
+    return normRows((raw && raw.profil) || []).map((r) => ({
+      id_sentra: pick1(r, ["id_sentra", "idsentra", "id", "id_cou"]),
+      nama_sentra: pick1(r, ["nama_sentra", "nama_cou", "cou", "nama", "sentra"]),
+      alamat: pick1(r, ["alamat", "alamat_cou", "alamat_kantor", "address"]),
+      gambar_url: pick1(r, ["gambar_url", "url_gambar", "gambar", "foto_url", "foto", "image_url", "image", "link_gambar", "url"]),
+      gambar_id: pick1(r, ["gambar_id", "file_id", "id_gambar"])
+    })).filter((r) => r.id_sentra || r.nama_sentra);
+  }
   function profilMap(raw) {
     const m = {};
-    ((raw && raw.profil) || []).forEach((r) => { const k = sid(r.id_sentra); if (k) m[k] = r; });
+    profilRows(raw).forEach((r) => { if (r.id_sentra) m[sid(r.id_sentra)] = r; });
     return m;
+  }
+  // ambil ID file Google Drive dari berbagai bentuk link (/file/d/ID/view, open?id=ID, uc?id=ID, thumbnail?id=ID, lh3 .../d/ID)
+  function driveId(u) {
+    u = String(u || "").trim();
+    let m = /\/file\/d\/([\w-]{15,})/.exec(u) || /\/d\/([\w-]{15,})/.exec(u) || /[?&]id=([\w-]{15,})/.exec(u);
+    if (m) return m[1];
+    if (/^[\w-]{25,}$/.test(u)) return u;          // hanya ID mentah
+    return "";
   }
   // daftar URL gambar yang dicoba berurutan (Drive kadang menolak salah satu bentuk URL)
   function profilImgSources(p) {
     p = p || {};
-    const id = String(p.gambar_id || "").trim(), out = [];
-    if (id) {
-      out.push("https://lh3.googleusercontent.com/d/" + id + "=w1200");
-      out.push("https://drive.google.com/thumbnail?id=" + id + "&sz=w1200");
-      out.push("https://drive.google.com/uc?export=view&id=" + id);
-    }
+    const out = [], add = (x) => { if (x && out.indexOf(x) < 0) out.push(x); };
     const u = String(p.gambar_url || "").trim();
-    if (u && out.indexOf(u) < 0) out.push(u);
-    return out;
-  }
-  // gambar -> data URL JPEG (maks. sisi 1200px) agar ringan dikirim ke Apps Script
-  function imageToDataUrl(file, maxSide, quality) {
-    return new Promise((resolve, reject) => {
-      if (!file || !/^image\/(jpeg|png|webp)$/.test(file.type)) return reject(new Error("File harus berformat JPG, PNG, atau WEBP"));
-      const fr = new FileReader();
-      fr.onerror = () => reject(new Error("Gagal membaca file gambar"));
-      fr.onload = () => {
-        const img = new Image();
-        img.onerror = () => reject(new Error("File gambar tidak dapat dibuka"));
-        img.onload = () => {
-          const k = Math.min(1, (maxSide || 1200) / Math.max(img.width, img.height));
-          const c = document.createElement("canvas");
-          c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
-          const ctx = c.getContext("2d");
-          ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, c.width, c.height);
-          ctx.drawImage(img, 0, 0, c.width, c.height);
-          resolve(c.toDataURL("image/jpeg", quality || 0.82));
-        };
-        img.src = fr.result;
-      };
-      fr.readAsDataURL(file);
-    });
-  }
-  // gambar: data URL (opsional; kosong = pertahankan gambar lama)
-  async function saveProfil(idSentra, alamat, gambar) {
-    if (!CONFIG.GAS_URL) {
-      const raw = demoLoad(), s = raw.sentra.find((x) => sid(x.id) === sid(idSentra));
-      if (!s) throw new Error("Sentra tidak ditemukan");
-      raw.profil = raw.profil || [];
-      const old = raw.profil.find((r) => sid(r.id_sentra) === sid(idSentra)) || {};
-      raw.profil = raw.profil.filter((r) => sid(r.id_sentra) !== sid(idSentra));
-      raw.profil.push({ id_sentra: s.id, nama_sentra: s.nama_sentra, alamat, gambar_url: gambar || old.gambar_url || "" });
-      demoSave(raw);
-      return { ok: true, demo: true };
+    const id = driveId(p.gambar_id) || driveId(u);
+    if (id) {
+      add("https://lh3.googleusercontent.com/d/" + id + "=w1200");
+      add("https://drive.google.com/thumbnail?id=" + id + "&sz=w1200");
+      add("https://drive.google.com/uc?export=view&id=" + id);
     }
-    return postAction({ action: "profil_save", id_sentra: idSentra, alamat, gambar: gambar || "" });
+    if (/^https?:\/\//i.test(u)) add(u);          // link gambar langsung (bukan Drive) tetap dicoba
+    return out;
   }
 
   // ---------- agregasi ----------
@@ -662,5 +645,5 @@
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind); else bind();
   })();
 
-  window.SentraAPI = { CONFIG, getSession, login, logout, CITIES, findCity, loadData, loadPjpur, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, saveProfil, profilMap, profilImgSources, imageToDataUrl, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
+  window.SentraAPI = { CONFIG, getSession, login, logout, CITIES, findCity, loadData, loadPjpur, submitData, saveKelolaan, deleteKelolaan, savePersonil, deletePersonil, saveInfrastruktur, deleteInfrastruktur, profilRows, profilMap, profilImgSources, aggregate, seedRaw, fmtNum, fmtRp, rasioInfo, fmtRasio, RASIO_IDEAL, esc, toast, icon, heroArt, isDemo: () => !CONFIG.GAS_URL };
 })();

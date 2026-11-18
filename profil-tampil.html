@@ -34,6 +34,17 @@
 .pt-grid.g3{grid-template-columns:repeat(3,1fr)}
 @media(max-width:640px){.pt-grid.g3{grid-template-columns:1fr}.pt-body{padding:20px}}
 .pt-note{margin-top:16px;font-size:12.5px;color:var(--muted)}
+.cb{position:relative}
+.cb input{padding-left:42px!important}
+.cb .cb-ic{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;display:flex}
+.cb .cb-ic .ic{width:18px;height:18px}
+.cb-list{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:30;max-height:300px;overflow:auto;padding:6px;border-radius:14px;background:#fff;border:1px solid var(--line);box-shadow:var(--sh-lg);display:none}
+.cb.open .cb-list{display:block}
+.cb-item{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:10px 12px;border-radius:10px;cursor:pointer;font-size:14.5px;font-weight:600;color:var(--ink)}
+.cb-item small{color:var(--muted);font-weight:500;font-size:12px}
+.cb-item.hl,.cb-item:hover{background:var(--blue-soft);color:var(--blue)}
+.cb-none{padding:14px;text-align:center;color:var(--muted);font-size:13.5px}
+.cb-item mark{background:var(--gold-soft);color:inherit;border-radius:3px;padding:0 1px}
 </style>
 <style id="auth-hide">html{visibility:hidden}</style>
 </head>
@@ -50,13 +61,7 @@
       <a href="index.html#dashboard"><svg class="ic"><use href="#i-chart"/></svg><span class="lbl">Dashboard</span></a>
       <a href="infocou.html"><svg class="ic"><use href="#i-info"/></svg><span class="lbl">Info COU</span></a>
       <a href="pjpur.html"><svg class="ic"><use href="#i-file"/></svg><span class="lbl">PJPUR</span></a>
-      <div class="nav-dd active">
-        <button type="button" class="nav-dd-btn" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-building"/></svg><span class="lbl">Profil COU</span><svg class="ic caret"><use href="#i-chev"/></svg></button>
-        <div class="nav-dd-menu" role="menu">
-          <a href="profil-form.html" role="menuitem"><svg class="ic"><use href="#i-edit"/></svg><span class="lbl">Form Profil</span></a>
-          <a href="profil-tampil.html" role="menuitem" class="active"><svg class="ic"><use href="#i-eye"/></svg><span class="lbl">Tampilkan Profil</span></a>
-        </div>
-      </div>
+      <a href="profil-tampil.html" class="active"><svg class="ic"><use href="#i-building"/></svg><span class="lbl">Profil COU</span></a>
       <div class="nav-dd">
         <button type="button" class="nav-dd-btn" aria-haspopup="true" aria-expanded="false"><svg class="ic"><use href="#i-edit"/></svg><span class="lbl">Edit</span><svg class="ic caret"><use href="#i-chev"/></svg></button>
         <div class="nav-dd-menu" role="menu">
@@ -77,7 +82,7 @@
       <div>
         <span class="eyebrow"><svg class="ic"><use href="#i-building"/></svg> Profil COU</span>
         <h2 class="title">Tampilkan Profil COU</h2>
-        <p class="lead-dark">Pilih nama sentra untuk melihat profil lengkapnya: gambar kantor, alamat, kelolaan, pegawai, dan infrastruktur.</p>
+        <p class="lead-dark">Cari nama COU (mis. &ldquo;Pontianak&rdquo;) untuk melihat gambar kantor, alamat, kelolaan, pegawai, mobil, mesin hitung, dan mesin sortir.</p>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <span class="chip" id="status"><span class="dot demo"></span> Memuat…</span>
@@ -87,10 +92,13 @@
 
     <section class="card pt-pick">
       <div class="field">
-        <label for="sentra">Nama Sentra / COU</label>
-        <select id="sentra"><option value="">Memuat daftar sentra…</option></select>
+        <label for="q">Cari COU</label>
+        <div class="cb" id="cb">
+          <span class="cb-ic"><svg class="ic"><use href="#i-search"/></svg></span>
+          <input id="q" type="text" autocomplete="off" placeholder="Klik lalu ketik nama COU, mis. Pontianak" role="combobox" aria-expanded="false" aria-controls="cbList">
+          <div class="cb-list" id="cbList" role="listbox"></div>
+        </div>
       </div>
-      <a class="btn btn-sm" href="profil-form.html" id="linkEdit"><svg class="ic"><use href="#i-edit"/></svg> Isi / ubah profil</a>
     </section>
 
     <div id="out"></div>
@@ -102,46 +110,50 @@
 (function () {
   "use strict";
   const A = window.SentraAPI, { esc, icon, fmtNum, fmtRasio, rasioInfo } = A, $ = (s) => document.querySelector(s);
-  let sentras = [], profil = {};
+  let items = [], curId = "", hl = -1, shown = [];   // items: [{ id, nama, s (agregat sentra / null), p (profil) }]
+
+  const norm = (v) => String(v == null ? "" : v).toLowerCase().replace(/\s+/g, " ").trim();
+  const bare = (v) => norm(v).replace(/^(cou|sentra)\s+/, "");
+  const dash = (v) => (v == null ? "–" : fmtNum(v));
 
   function emptyState() {
-    $("#out").innerHTML = `<div class="card pt-empty"><div class="ring">${icon("building")}</div><b>Pilih COU terlebih dahulu</b>Profil akan tampil di sini setelah Anda memilih nama sentra.</div>`;
+    $("#out").innerHTML = `<div class="card pt-empty"><div class="ring">${icon("building")}</div><b>Cari COU terlebih dahulu</b>Klik kolom pencarian di atas, lalu ketik atau pilih nama COU.</div>`;
   }
   const metric = (ic, tone, l, v, sub) =>
     `<div class="metric"><span class="m-ico ${tone}">${icon(ic)}</span><div><div class="m-label">${l}</div><div class="m-value">${v}</div>${sub ? `<div class="m-sub">${sub}</div>` : ""}</div></div>`;
 
   function show(id) {
-    const s = sentras.find((x) => String(x.id) === id);
-    if (!s) return emptyState();
-    const p = profil[String(s.id).toUpperCase()] || {};
+    const it = items.find((x) => x.id === id);
+    if (!it) { curId = ""; return emptyState(); }
+    curId = id;
+    const s = it.s, p = it.p || {};
     const alamat = String(p.alamat || "").trim();
     const srcs = A.profilImgSources(p);
     const photo = srcs.length
-      ? `<img id="ptImg" src="${esc(srcs[0])}" alt="Kantor ${esc(s.nama)}" referrerpolicy="no-referrer">`
-      : `<div class="none">${icon("building")}Gambar kantor belum diunggah</div>`;
-    $("#out").innerHTML = `
-      <article class="card pt-card">
-        <div class="pt-photo">${photo}</div>
-        <div class="pt-body">
-          <div class="pt-title">
-            <h3>${esc(s.nama)}</h3>
-            <div class="badges">${s.divisi ? `<span class="chip gold">${esc(s.divisi)}</span>` : ""}${s.region ? `<span class="chip blue">Region ${s.region}</span>` : ""}</div>
-          </div>
-          <div class="pt-addr${alamat ? "" : " empty"}">${icon("pin")}<div>${alamat ? esc(alamat).replace(/\n/g, "<br>") : "Alamat belum diisi. Lengkapi lewat menu Profil COU › Form Profil."}</div></div>
-
-          <div class="pt-sec">Ringkasan</div>
+      ? `<img id="ptImg" src="${esc(srcs[0])}" alt="Kantor ${esc(it.nama)}" referrerpolicy="no-referrer">`
+      : `<div class="none">${icon("building")}Kolom gambar url belum diisi di sheet ProfilCOU</div>`;
+    const meta = s ? `${s.divisi ? `<span class="chip gold">${esc(s.divisi)}</span>` : ""}${s.region ? `<span class="chip blue">Region ${s.region}</span>` : ""}` : "";
+    const data = s
+      ? `<div class="pt-sec">Ringkasan</div>
           <div class="pt-grid">
             ${metric("cash", "gold", "Jumlah Kelolaan", fmtNum(s.kelolaan), s.banks ? fmtNum(s.banks) + " user / bank" : "")}
             ${metric("users", "violet", "Jumlah Pegawai", fmtNum(s.pegawai), "personil")}
           </div>
-
           <div class="pt-sec">Infrastruktur</div>
           <div class="pt-grid g3">
             ${metric("truck", "blue", "Mobil CR FLM", fmtNum(s.mobil), "unit")}
             ${metric("calc", "gold", "Mesin Hitung", fmtNum(s.mesinHitung), "unit")}
             ${metric("layers", "teal", "Mesin Sortir", fmtNum(s.mesinSortir), "unit")}
           </div>
-          <p class="pt-note">Rasio Pegawai : Kelolaan ${fmtRasio(s.kelolaan, s.pegawai)} · ${esc(rasioInfo(s.kelolaan, s.pegawai).status)}</p>
+          <p class="pt-note">Rasio Pegawai : Kelolaan ${fmtRasio(s.kelolaan, s.pegawai)} · ${esc(rasioInfo(s.kelolaan, s.pegawai).status)}</p>`
+      : `<div class="pt-addr empty">${icon("info")}<div>Id_sentra <b>${esc(it.id)}</b> tidak ditemukan di sheet Sentra, jadi data kelolaan, pegawai, dan infrastruktur belum bisa ditampilkan.</div></div>`;
+    $("#out").innerHTML = `
+      <article class="card pt-card">
+        <div class="pt-photo">${photo}</div>
+        <div class="pt-body">
+          <div class="pt-title"><h3>${esc(it.nama)}</h3><div class="badges">${meta}</div></div>
+          <div class="pt-addr${alamat ? "" : " empty"}">${icon("pin")}<div>${alamat ? esc(alamat).replace(/\n/g, "<br>") : "Kolom alamat belum diisi di sheet ProfilCOU."}</div></div>
+          ${data}
         </div>
       </article>`;
     const im = $("#ptImg");
@@ -149,29 +161,69 @@
       let n = 0;
       im.addEventListener("error", () => {
         if (++n < srcs.length) { im.src = srcs[n]; return; }
-        im.parentElement.innerHTML = `<div class="none">${icon("building")}Gambar tidak dapat dimuat<br><small>Pastikan file di Google Drive dibagikan &ldquo;Anyone with the link&rdquo;</small></div>`;
+        im.parentElement.innerHTML = `<div class="none">${icon("building")}Gambar tidak dapat dimuat<br><small>Pastikan file di Google Drive dibagikan &ldquo;Anyone with the link&rdquo; dan kolom gambar url berisi link yang benar</small></div>`;
       });
     }
   }
 
-  function fillSelect(keep) {
-    $("#sentra").innerHTML = '<option value="">— Pilih COU —</option>' +
-      sentras.map((s) => `<option value="${esc(s.id)}">${esc(s.nama)}</option>`).join("");
-    if (keep && sentras.some((s) => String(s.id) === keep)) $("#sentra").value = keep;
+  /* ---------- kolom pencarian ---------- */
+  const cb = $("#cb"), q = $("#q"), list = $("#cbList");
+  function hi(text, term) {
+    const t = esc(text); if (!term) return t;
+    const i = norm(text).indexOf(term); if (i < 0) return t;
+    return esc(text.slice(0, i)) + "<mark>" + esc(text.slice(i, i + term.length)) + "</mark>" + esc(text.slice(i + term.length));
   }
+  function render() {
+    const term = norm(q.value), bt = bare(q.value);
+    shown = items.filter((x) => !term || norm(x.nama).includes(term) || bare(x.nama).includes(bt) || norm(x.id).includes(term)).slice(0, 60);
+    if (hl >= shown.length) hl = shown.length - 1;
+    list.innerHTML = shown.length
+      ? shown.map((x, i) => `<div class="cb-item${i === hl ? " hl" : ""}" role="option" data-id="${esc(x.id)}"><span>${hi(x.nama, term)}</span><small>${esc(x.id)}</small></div>`).join("")
+      : `<div class="cb-none">COU &ldquo;${esc(q.value)}&rdquo; tidak ditemukan</div>`;
+  }
+  function openList() { cb.classList.add("open"); q.setAttribute("aria-expanded", "true"); render(); }
+  function closeList() { cb.classList.remove("open"); q.setAttribute("aria-expanded", "false"); hl = -1; }
+  function choose(id) {
+    const it = items.find((x) => x.id === id); if (!it) return;
+    q.value = it.nama; closeList(); show(id); history.replaceState(null, "", "#" + encodeURIComponent(id));
+  }
+  q.addEventListener("focus", () => { q.select(); openList(); });
+  q.addEventListener("click", openList);
+  q.addEventListener("input", () => { hl = 0; openList(); });
+  q.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") { e.preventDefault(); if (!cb.classList.contains("open")) openList(); hl = Math.min(shown.length - 1, hl + 1); render(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); hl = Math.max(0, hl - 1); render(); }
+    else if (e.key === "Enter") { e.preventDefault(); const t = shown[hl >= 0 ? hl : 0]; if (t) choose(t.id); }
+    else if (e.key === "Escape") { closeList(); q.blur(); }
+    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && list.querySelector(".hl")) list.querySelector(".hl").scrollIntoView({ block: "nearest" });
+  });
+  list.addEventListener("mousedown", (e) => { const el = e.target.closest(".cb-item"); if (el) { e.preventDefault(); choose(el.dataset.id); } });
+  document.addEventListener("mousedown", (e) => { if (!cb.contains(e.target)) { closeList(); if (curId) { const it = items.find((x) => x.id === curId); if (it) q.value = it.nama; } } });
+
+  /* ---------- data: ProfilCOU + relasi per Id_sentra ---------- */
   async function load() {
     const btn = $("#refresh"); btn.disabled = true;
-    const keep = $("#sentra").value;
     try {
       const { raw, demo } = await A.loadData();
-      sentras = A.aggregate(raw).sentras.slice().sort((a, b) => String(a.nama).localeCompare(String(b.nama), "id"));
-      profil = A.profilMap(raw);
+      const ag = A.aggregate(raw).sentras;
+      const byId = new Map(ag.map((s) => [String(s.id).trim().toUpperCase(), s]));
+      const byName = new Map(ag.map((s) => [bare(s.nama), s]));
+      const rows = A.profilRows(raw);
+      // daftar COU mengacu pada sheet ProfilCOU; jika sheet kosong (mis. mode demo) pakai daftar Sentra
+      items = (rows.length ? rows : ag.map((s) => ({ id_sentra: s.id, nama_sentra: s.nama, alamat: "", gambar_url: "", gambar_id: "" })))
+        .map((r) => {
+          const id = String(r.id_sentra).trim().toUpperCase();
+          const s = byId.get(id) || (r.nama_sentra ? byName.get(bare(r.nama_sentra)) : null) || null;
+          return { id: id || (s ? String(s.id).toUpperCase() : r.nama_sentra), nama: (s && s.nama) || r.nama_sentra || id, s, p: r };
+        })
+        .sort((a, b) => String(a.nama).localeCompare(String(b.nama), "id"));
       const hh = new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
       $("#status").innerHTML = demo ? '<span class="dot demo"></span> Mode demo' : '<span class="dot"></span> Live · Google Sheets · ' + hh;
     } catch (e) { A.toast("Gagal memuat data: " + e.message, "error"); $("#status").innerHTML = '<span class="dot demo"></span> Gagal memuat'; }
-    fillSelect(keep); show($("#sentra").value); btn.disabled = false;
+    btn.disabled = false;
+    const want = decodeURIComponent(location.hash.slice(1)) || curId;
+    if (want && items.some((x) => x.id === want)) choose(want); else { if (!curId) emptyState(); else show(curId); }
   }
-  $("#sentra").addEventListener("change", () => show($("#sentra").value));
   $("#refresh").addEventListener("click", load);
   emptyState(); load();
 })();

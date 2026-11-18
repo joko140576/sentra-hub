@@ -129,7 +129,7 @@ function doGet(e) {
       banks: readBankHeaders_(),
       personil: readSheet_('Personil'),
       infrastruktur: readSheet_('Infrastruktur'),
-      profil: readSheet_('ProfilCOU'),
+      profil: readProfil_(),
       ts: new Date().toISOString()
     });
   } catch (err) {
@@ -166,7 +166,6 @@ function doPost(e) {
     if (body.action === 'personil_delete') return json_({ ok: true, result: deletePersonil_(body) });
     if (body.action === 'infra_save')       return json_({ ok: true, result: saveInfrastruktur_(body) });
     if (body.action === 'infra_delete')     return json_({ ok: true, result: deleteInfrastruktur_(body) });
-    if (body.action === 'profil_save')      return json_({ ok: true, result: saveProfil_(body) });
     throw new Error('Aksi tidak dikenal');
   } catch (err) {
     return errJson_(err);
@@ -413,48 +412,36 @@ function deleteInfrastruktur_(b) {
   return { id_sentra: s.id, deleted: true };
 }
 
-/* ---------------- PROFIL COU (menu Profil COU > Form Profil) ----------------
-   profil_save : { id_sentra, alamat, gambar (opsional, data URL jpeg/png/webp) }
-                 -> sheet "ProfilCOU" (dibuat otomatis). Gambar disimpan di Google Drive
-                    (folder "SentraHub_ProfilCOU"), yang disimpan di sheet hanya URL-nya.
-                    Jika gambar tidak dikirim, gambar lama dipertahankan.
-   PENTING: fungsi ini memakai DriveApp -> jalankan authSetup() / profilSetup() sekali
-            dari editor untuk memberi izin Drive, lalu Deploy > New version. */
-const PROFIL_FOLDER = 'SentraHub_ProfilCOU';
-const PROFIL_MAX_BYTES = 2 * 1024 * 1024;   // batas gambar setelah dikompres di browser
-
-function profilSetup() { profilFolder_(); Logger.log('Folder Drive profil COU OK'); }
-
-function profilFolder_() {
-  const it = DriveApp.getFoldersByName(PROFIL_FOLDER);
-  return it.hasNext() ? it.next() : DriveApp.createFolder(PROFIL_FOLDER);
-}
-
-function saveProfil_(b) {
-  const s = findSentra_(b.id_sentra);
-  const alamat = String(b.alamat || '').trim();
-  if (!alamat) throw new Error('Alamat wajib diisi');
-  if (alamat.length > 500) throw new Error('Alamat terlalu panjang (maks. 500 karakter)');
-
-  const old = readSheet_('ProfilCOU').filter(function (r) {
-    return String(r.id_sentra).trim().toUpperCase() === String(s.id).trim().toUpperCase();
-  })[0] || {};
-  let url = old.gambar_url || '', fid = old.gambar_id || '';
-
-  if (b.gambar) {
-    const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+\/=]+)$/.exec(String(b.gambar));
-    if (!m) throw new Error('Format gambar harus JPG, PNG, atau WEBP');
-    const bytes = Utilities.base64Decode(m[2]);
-    if (bytes.length > PROFIL_MAX_BYTES) throw new Error('Ukuran gambar terlalu besar (maks. 2 MB)');
-    const ext = m[1] === 'image/png' ? 'png' : (m[1] === 'image/webp' ? 'webp' : 'jpg');
-    const file = profilFolder_().createFile(Utilities.newBlob(bytes, m[1], s.id + '_' + normName_(s.nama_sentra).replace(/\s+/g, '-') + '.' + ext));
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    if (fid) { try { DriveApp.getFileById(fid).setTrashed(true); } catch (_) {} }   // hapus gambar lama
-    fid = file.getId();
-    url = 'https://drive.google.com/thumbnail?id=' + fid + '&sz=w1200';
+/* ---------------- PROFIL COU (menu Profil COU > Tampilkan Profil) ----------------
+   Hanya BACA sheet "ProfilCOU" (nama sheet tidak peka huruf besar/kecil).
+   Kolom yang dikenali (header bebas huruf besar/kecil): id_sentra, alamat, gambar url.
+   URL gambar diambil dari: teks sel, hyperlink sel, atau rumus =IMAGE("url") / =HYPERLINK("url"). */
+function readProfil_() {
+  const sh = sheet_('ProfilCOU');
+  const lastR = sh.getLastRow(), lastC = sh.getLastColumn();
+  if (lastR < 2 || lastC < 1) return [];
+  const rng = sh.getRange(1, 1, lastR, lastC);
+  const disp = rng.getDisplayValues(), fx = rng.getFormulas(), rich = rng.getRichTextValues();
+  const head = disp[0].map(function (h) { return String(h).trim().toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, ''); });
+  const out = [];
+  for (var i = 1; i < lastR; i++) {
+    if (!disp[i].some(function (x) { return String(x).trim() !== ''; })) continue;
+    const o = {};
+    head.forEach(function (k, c) {
+      if (!k) return;
+      var v = disp[i][c];
+      var u = '';
+      var m = /(?:IMAGE|HYPERLINK)\(\s*"([^"]+)"/i.exec(fx[i][c] || '');
+      if (m) u = m[1];
+      if (!u && rich[i][c]) {
+        u = rich[i][c].getLinkUrl() || '';
+        if (!u) { var runs = rich[i][c].getRuns(); for (var r = 0; r < runs.length && !u; r++) u = runs[r].getLinkUrl() || ''; }
+      }
+      o[k] = (u && !/^https?:\/\//i.test(String(v).trim())) ? u : v;   // jika sel berisi teks lain, pakai URL-nya
+    });
+    out.push(o);
   }
-  replaceRows_('ProfilCOU', s.id, [[s.id, s.nama_sentra, alamat, url, fid, new Date().toISOString()]]);
-  return { id_sentra: s.id, alamat: alamat, gambar_url: url };
+  return out;
 }
 
 /* ---------------- PJPUR (menu PJPUR) ----------------
@@ -503,6 +490,10 @@ function ss_() { return SpreadsheetApp.getActiveSpreadsheet(); }
 
 function sheet_(name) {
   let sh = ss_().getSheetByName(name);
+  if (!sh) {   // toleran huruf besar/kecil & spasi, mis. "profilCOU" = "ProfilCOU"
+    const want = String(name).trim().toLowerCase();
+    sh = ss_().getSheets().filter(function (x) { return x.getName().trim().toLowerCase() === want; })[0];
+  }
   if (!sh) sh = ss_().insertSheet(name);
   const head = SHEETS[name];
   if (sh.getLastRow() === 0) {
