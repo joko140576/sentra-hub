@@ -9,7 +9,7 @@
   "use strict";
 
   const CONFIG = {
-    GAS_URL: "https://script.google.com/macros/s/AKfycbzcNCsaL9w45wZ3TRUaVVbTCO8KL1Eb9dcUcwqgjfWO_heSaj8g_IXbGtDbJ81KPVuy0Q/exec"
+    GAS_URL: "https://script.google.com/macros/s/AKfycbw-lPO6xGVnGuMIOjEy6mVXR9M7-1LvBKqi4Xd84nbe5OssDSoXEBb0XnYgYFA2DtsRkg/exec"
   };
 
   // ---------- sesi login ----------
